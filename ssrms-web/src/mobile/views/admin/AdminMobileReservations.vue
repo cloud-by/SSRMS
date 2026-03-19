@@ -28,9 +28,9 @@
           <div class="mobile-item-meta">{{ item.roomLabel || item.roomName || '未命名自习室' }} · 座位 {{ item.seatNo || '未指定' }}</div>
           <div class="mobile-item-meta">{{ item.date }} {{ timeText(item.startTime) }}-{{ timeText(item.endTime) }} · 预约号 {{ item.reservationNo }}</div>
           <div class="mobile-actions" style="margin-top:12px;">
-            <button v-if="item.status === 'reserved'" type="button" class="mobile-action-btn" @click="handleAction('checkin', item.id)">补录签到</button>
+            <button v-if="canForceCheckin(item.status)" type="button" class="mobile-action-btn" @click="handleAction('checkin', item.id)">补录签到</button>
             <button v-if="item.status === 'reserved'" type="button" class="mobile-outline-btn" @click="handleAction('cancel', item.id)">取消预约</button>
-            <button v-if="item.status === 'reserved' || item.status === 'late'" type="button" class="mobile-outline-btn" @click="handleAction('violation', item.id)">标记违约</button>
+            <button v-if="canMarkViolation(item.status)" type="button" class="mobile-outline-btn" @click="handleAction('violation', item.id)">标记违约</button>
           </div>
         </div>
         <div v-if="!reservations.length" class="mobile-card mobile-empty">暂无预约数据。</div>
@@ -92,11 +92,24 @@ export default {
         ElMessage.error(res.msg || '处理失败')
       }
     },
+    canForceCheckin (status) {
+      return ['late', 'no_show'].includes(status)
+    },
+    canMarkViolation (status) {
+      return status === 'checked_in'
+    },
     timeText (value) {
       return value ? String(value).slice(0, 5) : '--:--'
     },
     statusText (status) {
-      return { reserved: '待签到', checked_in: '已签到', late: '迟到签到', cancelled: '已取消', no_show: '未到场' }[status] || status
+      return {
+        reserved: '待签到',
+        checked_in: '已签到',
+        late: '迟到签到',
+        cancelled: '已取消',
+        cancel_overdue: '逾期取消',
+        no_show: '未到场'
+      }[status] || status
     },
     statusBadgeClass (status) {
       if (status === 'reserved') return 'info'

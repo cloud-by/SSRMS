@@ -26,7 +26,7 @@
 import { ElMessageBox, ElMessage } from 'element-plus'
 import UserHeader from '../components/UserHeader.vue'
 import UserAside from '../components/UserAside.vue'
-import UserHome from '../views/user/UserDesktopHome.vue'
+import UserHome from '../view/user/UserDesktopHome.vue'
 
 export default {
   name: 'MainIndex',

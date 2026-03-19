@@ -1,6 +1,6 @@
 // src/router/index.js
 import { createRouter, createWebHistory } from 'vue-router'
-import DesktopPortal from '@/desktop/views/auth/DesktopPortal.vue'
+import DesktopPortal from '@/desktop/view/auth/DesktopPortal.vue'
 import DesktopUserLayout from '@/desktop/layouts/DesktopUserLayout.vue'
 import DesktopAdminLayout from '@/desktop/layouts/DesktopAdminLayout.vue'
 import MobilePortal from '@/mobile/views/auth/MobilePortal.vue'
@@ -59,6 +59,7 @@ const routes = [
         children: [
             { path: '', redirect: '/m/admin/home' },
             { path: 'home', name: 'MobileAdminHome', component: AdminMobileHome, meta: { requiresAuth: true, role: 'admin', mobile: true } },
+            { path: 'reservations', name: 'MobileAdminReservations', component: AdminMobileReservations, meta: { requiresAuth: true, role: 'admin', mobile: true } },
             { path: 'users', name: 'MobileAdminUsers', component: AdminMobileUsers, meta: { requiresAuth: true, role: 'admin', mobile: true } },
             { path: 'notices', name: 'MobileAdminNotices', component: AdminMobileNotices, meta: { requiresAuth: true, role: 'admin', mobile: true } },
             { path: 'me', name: 'MobileAdminMe', component: AdminMobileMe, meta: { requiresAuth: true, role: 'admin', mobile: true } }

@@ -24,7 +24,7 @@
 import { ElMessageBox, ElMessage } from 'element-plus'
 import AdminHeader from '../components/AdminHeader.vue'
 import AdminAside from '../components/AdminAside.vue'
-import AdminHome from '../views/admin/AdminDesktopHome.vue'
+import AdminHome from '../view/admin/AdminDesktopHome.vue'
 
 export default {
   name: 'AdminIndex',

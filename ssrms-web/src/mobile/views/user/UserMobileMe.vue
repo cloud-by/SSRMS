@@ -44,7 +44,7 @@
 import { ElMessage } from 'element-plus'
 import request from '@/utils/request'
 import '../../components/mobile.css'
-import { clearLoginUser, getLoginUser } from '../../components/mobileAuth'
+import { clearLoginUser, getLoginUser, saveLoginUser } from '../../components/mobileAuth'
 
 export default {
   name: 'UserMobileMe',
@@ -103,7 +103,7 @@ export default {
       if (res.code === 200) {
         ElMessage.success('保存成功')
         const loginUser = getLoginUser() || {}
-        localStorage.setItem('ssrmsUser', JSON.stringify({ ...loginUser, ...res.data }))
+        saveLoginUser({ ...loginUser, ...res.data })
         this.loadProfile()
       } else {
         ElMessage.error(res.msg || '保存失败')

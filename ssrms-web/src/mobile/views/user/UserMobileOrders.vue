@@ -57,7 +57,7 @@ export default {
       return this.orders.filter(item => {
         if (this.tab === 'pending') return item.status === 'reserved'
         if (this.tab === 'active') return item.status === 'checked_in' || item.status === 'late'
-        return ['cancelled', 'no_show'].includes(item.status)
+        return ['cancelled', 'cancel_overdue', 'no_show'].includes(item.status)
       })
     }
   },
@@ -75,13 +75,20 @@ export default {
     countByTab (tab) {
       if (tab === 'pending') return this.orders.filter(item => item.status === 'reserved').length
       if (tab === 'active') return this.orders.filter(item => item.status === 'checked_in' || item.status === 'late').length
-      return this.orders.filter(item => ['cancelled', 'no_show'].includes(item.status)).length
+      return this.orders.filter(item => ['cancelled', 'cancel_overdue', 'no_show'].includes(item.status)).length
     },
     timeText (value) {
       return value ? String(value).slice(0, 5) : '--:--'
     },
     statusText (status) {
-      return { reserved: '待签到', checked_in: '已签到', late: '迟到签到', cancelled: '已取消', no_show: '未到场' }[status] || status
+      return {
+        reserved: '待签到',
+        checked_in: '已签到',
+        late: '迟到签到',
+        cancelled: '已取消',
+        cancel_overdue: '逾期取消',
+        no_show: '未到场'
+      }[status] || status
     },
     statusBadgeClass (status) {
       if (status === 'reserved') return 'info'

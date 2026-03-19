@@ -1307,7 +1307,7 @@
 
 <script>
 import { ElMessage } from 'element-plus'
-import AiAssistantLite from './AiAssistantLite.vue'
+import AiAssistantLite from '../../components/AiAssistantLite.vue'
 
 export default {
   name: 'AppHome',

@@ -1,19 +1,17 @@
 <template>
   <div class="app-wrapper">
-    <!-- 左侧导航 -->
-    <AppAside
+    <AdminAside
         :current-page="currentPage"
         @change-page="changePage"
     />
 
-    <!-- 右侧区域：标题栏 + 主内容 -->
     <div class="main-area">
-      <AppHeader
+      <AdminHeader
           :current-page="currentPage"
           @logout="handleLogout"
       />
       <div class="content-area">
-        <AppHome
+        <AdminHome
             :current-page="currentPage"
             @change-page="changePage"
         />
@@ -24,20 +22,20 @@
 
 <script>
 import { ElMessageBox, ElMessage } from 'element-plus'
-import UserHeader from './UserHeader.vue'
-import UserAside from './UserAside.vue'
-import UserHome from './UserHome.vue'
+import AdminHeader from '../components/AdminHeader.vue'
+import AdminAside from '../components/AdminAside.vue'
+import AdminHome from '../views/admin/AdminDesktopHome.vue'
 
 export default {
-  name: 'MainIndex',
+  name: 'AdminIndex',
   components: {
-    AppHeader: UserHeader,
-    AppAside: UserAside,
-    AppHome: UserHome
+    AdminHeader,
+    AdminAside,
+    AdminHome
   },
   data () {
     return {
-      currentPage: 'home'
+      currentPage: 'admin-home'
     }
   },
   methods: {
@@ -57,20 +55,25 @@ export default {
             }
         )
 
-        // 1) 清掉登录信息（路由守卫用 ssrmsUser 的话，这个必须删）
+        // 关键：路由守卫用的是 ssrmsUser，所以必须删它
         localStorage.removeItem('ssrmsUser')
-        // 可选：如果你存过 token，也一起删
+
+        // 如果你登录时还存过 token，也顺手清掉（不影响没存的情况）
         localStorage.removeItem('ssrmsToken')
         localStorage.removeItem('token')
         sessionStorage.removeItem('ssrmsUser')
         sessionStorage.removeItem('ssrmsToken')
         sessionStorage.removeItem('token')
 
-        // 2) 跳回登录页（replace 防止后退回到 /user）
+        // 可选：如果你给 axios 设过默认 Authorization，这里顺手清
+        if (this.$axios && this.$axios.defaults && this.$axios.defaults.headers) {
+          delete this.$axios.defaults.headers.common.Authorization
+        }
+
         ElMessage.success('已退出登录')
         this.$router.replace('/login')
       } catch (e) {
-        // 用户点了“取消”就啥也不做
+        // 点了取消就不做任何事
       }
     }
   }
@@ -78,26 +81,25 @@ export default {
 </script>
 
 <style scoped>
-/* 整体：左侧导航 + 右侧主区域 */
+/* 整体布局与 UserIndex 保持一致 */
 .app-wrapper {
   min-height: 100vh;
   display: flex;
-  background-color: #f5f7fb;
+  background-color: #f5f7fb; /* 统一背景色 */
 }
 
-/* 右侧主区域：上标题栏 + 下内容 */
 .main-area {
   flex: 1;
   display: flex;
   flex-direction: column;
 }
 
-/* 右侧主内容区域，留一点内边距，让卡片更贴近底部 */
 .content-area {
   flex: 1;
   display: flex;
   padding: 8px 24px 20px 24px;
   box-sizing: border-box;
+  overflow-x: hidden;
 }
 
 @media (max-width: 900px) {

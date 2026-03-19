@@ -1,8 +1,8 @@
 // src/router/index.js
 import { createRouter, createWebHistory } from 'vue-router'
-import LoginRegister from '@/components/LoginRegister.vue'
-import UserIndex from '@/components/UserIndex.vue'
-import AdminIndex from '@/components/AdminIndex.vue'
+import DesktopPortal from '@/desktop/views/auth/DesktopPortal.vue'
+import DesktopUserLayout from '@/desktop/layouts/DesktopUserLayout.vue'
+import DesktopAdminLayout from '@/desktop/layouts/DesktopAdminLayout.vue'
 import MobilePortal from '@/mobile/views/auth/MobilePortal.vue'
 import MobileUserLayout from '@/mobile/layouts/MobileUserLayout.vue'
 import MobileAdminLayout from '@/mobile/layouts/MobileAdminLayout.vue'
@@ -19,12 +19,12 @@ import AdminMobileMe from '@/mobile/views/admin/AdminMobileMe.vue'
 
 const routes = [
     { path: '/', redirect: '/login' },
-    { path: '/login', name: 'Login', component: LoginRegister },
+    { path: '/login', name: 'Login', component: DesktopPortal },
     { path: '/m', name: 'MobilePortal', component: MobilePortal },
     {
         path: '/user',
         name: 'UserHome',
-        component: UserIndex,
+        component: DesktopUserLayout,
         meta: {
             requiresAuth: true,
             role: 'user'
@@ -33,7 +33,7 @@ const routes = [
     {
         path: '/admin',
         name: 'AdminHome',
-        component: AdminIndex,
+        component: DesktopAdminLayout,
         meta: {
             requiresAuth: true,
             role: 'admin'
@@ -59,7 +59,6 @@ const routes = [
         children: [
             { path: '', redirect: '/m/admin/home' },
             { path: 'home', name: 'MobileAdminHome', component: AdminMobileHome, meta: { requiresAuth: true, role: 'admin', mobile: true } },
-            { path: 'reservations', name: 'MobileAdminReservations', component: AdminMobileReservations, meta: { requiresAuth: true, role: 'admin', mobile: true } },
             { path: 'users', name: 'MobileAdminUsers', component: AdminMobileUsers, meta: { requiresAuth: true, role: 'admin', mobile: true } },
             { path: 'notices', name: 'MobileAdminNotices', component: AdminMobileNotices, meta: { requiresAuth: true, role: 'admin', mobile: true } },
             { path: 'me', name: 'MobileAdminMe', component: AdminMobileMe, meta: { requiresAuth: true, role: 'admin', mobile: true } }

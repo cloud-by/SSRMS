@@ -3,7 +3,9 @@ package com.ssrms.controller;
 import com.ssrms.common.Result;
 import com.ssrms.controller.vo.MonthBriefVO;
 import com.ssrms.controller.vo.TodayOverviewVO;
+import com.ssrms.entity.Room;
 import com.ssrms.mapper.ReservationMapper;
+import com.ssrms.service.RoomService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -18,10 +20,11 @@ import java.util.Map;
 @RequestMapping("/dashboard")
 public class DashboardController {
 
-    private static final int TOTAL_SEATS = 24000;
-
     @Autowired
     private ReservationMapper reservationMapper;
+
+    @Autowired
+    private RoomService roomService;
 
     @GetMapping("/home")
     public Result home(@RequestParam Integer userId) {
@@ -35,11 +38,16 @@ public class DashboardController {
         reserved = (reserved == null) ? 0 : reserved;
         inUse = (inUse == null) ? 0 : inUse;
 
-        int remaining = TOTAL_SEATS - reserved - inUse;
+        int totalSeats = roomService.list().stream()
+                .map(Room::getOpenSeats)
+                .filter(x -> x != null && x > 0)
+                .reduce(0, Integer::sum);
+
+        int remaining = totalSeats - reserved - inUse;
         if (remaining < 0) remaining = 0;
 
         TodayOverviewVO todayOverview = new TodayOverviewVO(
-                TOTAL_SEATS, reserved, inUse, remaining
+                totalSeats, reserved, inUse, remaining
         );
 
         LocalDate monthStart = today.withDayOfMonth(1);

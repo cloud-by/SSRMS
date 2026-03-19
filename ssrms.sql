@@ -79,7 +79,7 @@ CREATE TABLE `room` (
 CREATE TABLE `seat` (
                         `id`      INT          NOT NULL AUTO_INCREMENT,
                         `room_id` INT          NOT NULL,
-                        `seat_no` VARCHAR(20)  NOT NULL COMMENT '座位编号，如 01~80',
+                        `seat_no` VARCHAR(20)  NOT NULL COMMENT '座位编号，如 01-01、08-06',
                         `status`  VARCHAR(20)  NOT NULL DEFAULT 'enabled' COMMENT 'enabled/disabled',
                         `remark`  VARCHAR(255) NULL,
 
@@ -347,17 +347,26 @@ INSERT INTO `quote` (`content`,`author`,`enabled`,`create_time`) VALUES
                                                                      ('Ciallo～(∠・ω< )⌒★', NULL, 1, NOW());
 
 
-/* 3) 生成 300 个 room（每个房间 80 座） */
+/* 3) 生成 300 个 room（更贴近现实：图书馆 64 座，教学楼 48 座） */
 INSERT INTO `room`
 (`campus`, `building`, `room_name`, `total_seats`, `open_seats`, `status`, `remark`)
 SELECT
     c.campus,
     b.building,
     r.room_name,
-    80 AS total_seats,
-    80 AS open_seats,
+    CASE
+        WHEN b.building = '图书馆' THEN 64
+        ELSE 48
+        END AS total_seats,
+    CASE
+        WHEN b.building = '图书馆' THEN 64
+        ELSE 48
+        END AS open_seats,
     'open' AS status,
-    NULL AS remark
+    CASE
+        WHEN b.building = '图书馆' THEN '8列布局，适合长时间安静自习'
+        ELSE '6列布局，保留通行空间与排间距'
+        END AS remark
 FROM
     (SELECT '本部校区' AS campus UNION ALL SELECT '东校区' UNION ALL SELECT '梅山校区') c
         CROSS JOIN
@@ -370,27 +379,44 @@ FROM
     ) r;
 
 
-/* 4) 生成 seat：每个 room 80 个座位 => 300×80 = 24000 */
+/* 4) 生成 seat：按房间类型生成更贴近现实的座位数与编号 */
 INSERT INTO `seat` (`room_id`, `seat_no`, `status`, `remark`)
 SELECT
     rm.id AS room_id,
-    LPAD(nums.n, 2, '0') AS seat_no,   -- 01~80
+    CONCAT(
+            LPAD(FLOOR((nums.n - 1) / seat_tpl.cols) + 1, 2, '0'),
+            '-',
+            LPAD(((nums.n - 1) % seat_tpl.cols) + 1, 2, '0')
+    ) AS seat_no,
     'enabled' AS status,
-    NULL AS remark
+    CASE
+        WHEN seat_tpl.cols = 8 THEN '图书馆标准安静区座位'
+        ELSE '教学楼自习座位'
+        END AS remark
 FROM `room` rm
+         JOIN (
+    SELECT '图书馆' AS building, 8 AS cols
+    UNION ALL
+    SELECT '1号教学楼', 6
+    UNION ALL
+    SELECT '2号教学楼', 6
+    UNION ALL
+    SELECT '3号教学楼', 6
+) seat_tpl ON seat_tpl.building = rm.building
          CROSS JOIN (
     SELECT (t.d * 10 + o.d + 1) AS n
     FROM
         (SELECT 0 d UNION ALL SELECT 1 UNION ALL SELECT 2 UNION ALL SELECT 3
-         UNION ALL SELECT 4 UNION ALL SELECT 5 UNION ALL SELECT 6 UNION ALL SELECT 7) t
+         UNION ALL SELECT 4 UNION ALL SELECT 5) t
             CROSS JOIN
         (SELECT 0 d UNION ALL SELECT 1 UNION ALL SELECT 2 UNION ALL SELECT 3 UNION ALL SELECT 4
          UNION ALL SELECT 5 UNION ALL SELECT 6 UNION ALL SELECT 7 UNION ALL SELECT 8 UNION ALL SELECT 9) o
-    WHERE (t.d * 10 + o.d) < 80
-) nums;
+    WHERE (t.d * 10 + o.d) < 64
+) nums
+WHERE nums.n <= rm.total_seats;
 
 
-/* 5) 校验：room=300, seat=24000 */
+/* 5) 校验：room=300, seat=15600 */
 SELECT COUNT(*) AS room_cnt FROM room;
 SELECT COUNT(*) AS seat_cnt FROM seat;
 

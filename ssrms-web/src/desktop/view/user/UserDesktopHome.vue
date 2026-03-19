@@ -550,7 +550,10 @@
         <!-- 座位号选择区域 -->
         <div class="slot-section">
           <div class="slot-header">
-            <div class="slot-title">选择座位号</div>
+            <div class="slot-title-wrap">
+              <div class="slot-title">选择座位号</div>
+              <div class="slot-subtitle" v-if="currentRoomSeatSummary">{{ currentRoomSeatSummary }}</div>
+            </div>
             <div class="slot-legend">
           <span class="legend-item">
             <span class="legend-dot legend-available"></span>可预约
@@ -564,7 +567,7 @@
             </div>
           </div>
 
-          <div class="slot-grid">
+          <div class="slot-grid" :style="seatGridStyle">
             <button
                 v-for="seat in seatList"
                 :key="seat"
@@ -1346,7 +1349,7 @@ export default {
       startHour: null,
       endHour: null,
 
-      // 座位号（01~40）
+      // 座位号（按当前房间动态生成，如 01-01）
       selectedSeatNo: '',
       disabledSeatNos: [],
 
@@ -1469,10 +1472,10 @@ export default {
       currentCreditScore: 100,
 
       todayOverview: {
-        totalSeats: 24000,
+        totalSeats: 15600,
         reservedCount: 0,
         inUseCount: 0,
-        remainingCount: 24000
+        remainingCount: 15600
       },
       monthBrief: {
         monthReserveCount: 0,
@@ -1501,8 +1504,11 @@ export default {
     currentRoomId () {
       return this.selectedRoomId
     },
+    currentRoomInfo () {
+      return this.allRooms.find(r => Number(r.id) === Number(this.selectedRoomId)) || null
+    },
     currentRoomFullName () {
-      const room = this.allRooms.find(r => Number(r.id) === Number(this.selectedRoomId))
+      const room = this.currentRoomInfo
       if (!room) return ''
       return `${room.campus} · ${room.building} ${room.roomName}`
     },
@@ -1543,10 +1549,29 @@ export default {
       const disabled = new Set(this.disabledSlotIds.map(x => Number(x)))
       return this.selectedSlotIdsFromRange.some(id => disabled.has(Number(id)))
     },
+    seatColumns () {
+      return this.currentRoomInfo?.building === '图书馆' ? 8 : 6
+    },
     seatList () {
       const arr = []
-      for (let i = 1; i <= 80; i++) arr.push(String(i).padStart(2, '0'))
+      const totalSeats = Number(this.currentRoomInfo?.openSeats || this.currentRoomInfo?.totalSeats || 0)
+      for (let i = 1; i <= totalSeats; i++) {
+        const row = Math.floor((i - 1) / this.seatColumns) + 1
+        const col = ((i - 1) % this.seatColumns) + 1
+        arr.push(`${String(row).padStart(2, '0')}-${String(col).padStart(2, '0')}`)
+      }
       return arr
+    },
+    seatGridStyle () {
+      return {
+        gridTemplateColumns: `repeat(${this.seatColumns}, minmax(0, 1fr))`
+      }
+    },
+    currentRoomSeatSummary () {
+      if (!this.currentRoomInfo) return ''
+      const seats = this.currentRoomInfo.openSeats || this.currentRoomInfo.totalSeats || 0
+      const layoutLabel = this.seatColumns === 8 ? '图书馆安静区布局' : '教学楼舒适布局'
+      return `${seats} 座 · ${this.seatColumns} 列排布 · ${layoutLabel}`
     },
     hasAnySelection () {
       return this.startHour != null || this.endHour != null || !!this.selectedSeatNo
@@ -1954,8 +1979,8 @@ export default {
               campus: c,
               building: b,
               roomName: rn,
-              totalSeats: 80,
-              openSeats: 80,
+              totalSeats: b === '图书馆' ? 64 : 48,
+              openSeats: b === '图书馆' ? 64 : 48,
               status: 'open'
             })
             id++
@@ -3875,6 +3900,17 @@ export default {
   color: #111827;
 }
 
+.slot-title-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.slot-subtitle {
+  font-size: 12px;
+  color: #6b7280;
+}
+
 .slot-legend {
   display: flex;
   gap: 12px;
@@ -3909,7 +3945,7 @@ export default {
 
 .slot-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(86px, 1fr));
+  grid-template-columns: repeat(6, minmax(0, 1fr));
   gap: 10px;
 }
 
@@ -3923,7 +3959,8 @@ export default {
   transition: all 0.15s ease;
   display: flex;
   flex-direction: column; /* 纵向排布子元素 */
-  align-items: center;
+  min-height: 72px;
+  justify-content: center;
 }
 
 .slot-item:disabled {

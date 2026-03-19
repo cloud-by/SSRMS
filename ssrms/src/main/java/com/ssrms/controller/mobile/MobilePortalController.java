@@ -46,8 +46,6 @@ import java.util.stream.Collectors;
 @RequestMapping("/mobile")
 public class MobilePortalController {
 
-    private static final int TOTAL_SEATS = 24000;
-
     @Autowired
     private UserService userService;
 
@@ -86,8 +84,13 @@ public class MobilePortalController {
         Integer inUse = reservationMapper.countInUseNow(today, now);
         reserved = reserved == null ? 0 : reserved;
         inUse = inUse == null ? 0 : inUse;
-        int remaining = Math.max(0, TOTAL_SEATS - reserved - inUse);
-        TodayOverviewVO todayOverview = new TodayOverviewVO(TOTAL_SEATS, reserved, inUse, remaining);
+        int totalSeats = roomService.list().stream()
+                .map(Room::getOpenSeats)
+                .filter(Objects::nonNull)
+                .mapToInt(Integer::intValue)
+                .sum();
+        int remaining = Math.max(0, totalSeats - reserved - inUse);
+        TodayOverviewVO todayOverview = new TodayOverviewVO(totalSeats, reserved, inUse, remaining);
 
         LocalDate monthStart = today.withDayOfMonth(1);
         LocalDate monthEnd = today.withDayOfMonth(today.lengthOfMonth());

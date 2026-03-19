@@ -1,16 +1,26 @@
 // src/router/index.js
 import { createRouter, createWebHistory } from 'vue-router'
-import LoginRegister from '@/components/LoginRegister.vue' // ✅ 统一登录/注册页面
-import UserIndex from '@/components/UserIndex.vue'         // 学生端
-import AdminIndex from '@/components/AdminIndex.vue'       // 管理员端
+import LoginRegister from '@/components/LoginRegister.vue'
+import UserIndex from '@/components/UserIndex.vue'
+import AdminIndex from '@/components/AdminIndex.vue'
+import MobilePortal from '@/mobile/views/auth/MobilePortal.vue'
+import MobileUserLayout from '@/mobile/layouts/MobileUserLayout.vue'
+import MobileAdminLayout from '@/mobile/layouts/MobileAdminLayout.vue'
+import UserMobileHome from '@/mobile/views/user/UserMobileHome.vue'
+import UserMobileReserve from '@/mobile/views/user/UserMobileReserve.vue'
+import UserMobileOrders from '@/mobile/views/user/UserMobileOrders.vue'
+import UserMobileNotices from '@/mobile/views/user/UserMobileNotices.vue'
+import UserMobileMe from '@/mobile/views/user/UserMobileMe.vue'
+import AdminMobileHome from '@/mobile/views/admin/AdminMobileHome.vue'
+import AdminMobileReservations from '@/mobile/views/admin/AdminMobileReservations.vue'
+import AdminMobileUsers from '@/mobile/views/admin/AdminMobileUsers.vue'
+import AdminMobileNotices from '@/mobile/views/admin/AdminMobileNotices.vue'
+import AdminMobileMe from '@/mobile/views/admin/AdminMobileMe.vue'
 
 const routes = [
     { path: '/', redirect: '/login' },
-
-    // ✅ 登录页直接使用 LoginRegister
     { path: '/login', name: 'Login', component: LoginRegister },
-
-    // 学生端，需要登录，role=user
+    { path: '/m', name: 'MobilePortal', component: MobilePortal },
     {
         path: '/user',
         name: 'UserHome',
@@ -20,8 +30,6 @@ const routes = [
             role: 'user'
         }
     },
-
-    // 管理员端，需要登录，role=admin
     {
         path: '/admin',
         name: 'AdminHome',
@@ -30,6 +38,32 @@ const routes = [
             requiresAuth: true,
             role: 'admin'
         }
+    },
+    {
+        path: '/m/user',
+        component: MobileUserLayout,
+        meta: { requiresAuth: true, role: 'user', mobile: true },
+        children: [
+            { path: '', redirect: '/m/user/home' },
+            { path: 'home', name: 'MobileUserHome', component: UserMobileHome, meta: { requiresAuth: true, role: 'user', mobile: true } },
+            { path: 'reserve', name: 'MobileUserReserve', component: UserMobileReserve, meta: { requiresAuth: true, role: 'user', mobile: true } },
+            { path: 'orders', name: 'MobileUserOrders', component: UserMobileOrders, meta: { requiresAuth: true, role: 'user', mobile: true } },
+            { path: 'notices', name: 'MobileUserNotices', component: UserMobileNotices, meta: { requiresAuth: true, role: 'user', mobile: true } },
+            { path: 'me', name: 'MobileUserMe', component: UserMobileMe, meta: { requiresAuth: true, role: 'user', mobile: true } }
+        ]
+    },
+    {
+        path: '/m/admin',
+        component: MobileAdminLayout,
+        meta: { requiresAuth: true, role: 'admin', mobile: true },
+        children: [
+            { path: '', redirect: '/m/admin/home' },
+            { path: 'home', name: 'MobileAdminHome', component: AdminMobileHome, meta: { requiresAuth: true, role: 'admin', mobile: true } },
+            { path: 'reservations', name: 'MobileAdminReservations', component: AdminMobileReservations, meta: { requiresAuth: true, role: 'admin', mobile: true } },
+            { path: 'users', name: 'MobileAdminUsers', component: AdminMobileUsers, meta: { requiresAuth: true, role: 'admin', mobile: true } },
+            { path: 'notices', name: 'MobileAdminNotices', component: AdminMobileNotices, meta: { requiresAuth: true, role: 'admin', mobile: true } },
+            { path: 'me', name: 'MobileAdminMe', component: AdminMobileMe, meta: { requiresAuth: true, role: 'admin', mobile: true } }
+        ]
     }
 ]
 
@@ -38,43 +72,48 @@ const router = createRouter({
     routes
 })
 
-// 读取登录用户（更稳：JSON 解析失败就当未登录）
 function getLoginUser () {
-    const raw = localStorage.getItem('ssrmsUser')
+    const raw = localStorage.getItem('ssrmsUser') || sessionStorage.getItem('ssrmsUser')
     if (!raw) return null
     try {
         return JSON.parse(raw)
     } catch (e) {
         localStorage.removeItem('ssrmsUser')
+        sessionStorage.removeItem('ssrmsUser')
         return null
     }
+}
+
+function homePathByRole (user, mobile) {
+    const isAdmin = user && Number(user.roleId) === 0
+    if (mobile) return isAdmin ? '/m/admin/home' : '/m/user/home'
+    return isAdmin ? '/admin' : '/user'
 }
 
 router.beforeEach((to, from, next) => {
     const user = getLoginUser()
 
-    // 1) 需要登录的页面
     if (to.meta && to.meta.requiresAuth) {
         if (!user) {
             return next({
                 path: '/login',
-                query: { redirect: to.fullPath }
+                query: {
+                    redirect: to.fullPath,
+                    ...(to.meta.mobile ? { mobile: '1' } : {})
+                }
             })
         }
 
-        // 2) 角色检查：roleId 0=管理员, 1=学生
-        //    如果角色不匹配，直接送回“他该去的首页”（体验更好）
-        if (to.meta.role === 'admin' && user.roleId !== 0) {
-            return next('/user')
+        if (to.meta.role === 'admin' && Number(user.roleId) !== 0) {
+            return next(homePathByRole(user, Boolean(to.meta.mobile)))
         }
-        if (to.meta.role === 'user' && user.roleId !== 1) {
-            return next('/admin')
+        if (to.meta.role === 'user' && Number(user.roleId) !== 1) {
+            return next(homePathByRole(user, Boolean(to.meta.mobile)))
         }
     }
 
-    // 3) 已登录又去 /login，就直接回对应首页
     if (to.path === '/login' && user) {
-        return next(user.roleId === 0 ? '/admin' : '/user')
+        return next(homePathByRole(user, to.query.mobile === '1'))
     }
 
     next()

@@ -295,7 +295,9 @@ export default {
         this.toast('success', '登录成功')
 
         const redirect = this.$route?.query?.redirect
+        const mobile = this.$route?.query?.mobile === '1'
         if (redirect) this.$router.replace(redirect)
+        else if (mobile) this.$router.replace(finalRoleId === 0 ? '/m/admin/home' : '/m/user/home')
         else this.$router.replace(finalRoleId === 0 ? '/admin' : '/user')
       } catch (e) {
         const status = e?.response?.status

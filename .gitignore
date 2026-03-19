@@ -1,1 +1,10 @@
-/.idea/
+.idea/
+*.iml
+.DS_Store
+ssrms/target/
+*.log
+ssrms-web/node_modules/
+ssrms-web/dist/
+ssrms-web/.cache/
+.vscode/
+.env

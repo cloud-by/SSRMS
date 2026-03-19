@@ -1,12 +1,14 @@
 server:
-  port: 8090
+  port: ${SERVER_PORT:8090}
 
 spring:
+  config:
+    import: optional:file:.env[.properties]
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://localhost:3306/ssrms?useUnicode=true&characterEncoding=utf-8&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true&useSSL=false
-    username: root
-    password: fzh586176
+    url: ${MYSQL_URL:jdbc:mysql://localhost:3306/ssrms?useUnicode=true&characterEncoding=utf-8&serverTimezone=Asia/Shanghai}
+    username: ${MYSQL_USERNAME:root}
+    password: ${MYSQL_PASSWORD:123456}
 
 mybatis-plus:
   mapper-locations: classpath*:mapper/*.xml
@@ -14,11 +16,11 @@ mybatis-plus:
 
 ssrms:
   cors:
-    allowed-origin-patterns: "http://localhost:*,http://127.0.0.1:*,http://你的前端域名,https://你的前端域名"
+    allowed-origin-patterns: ${SSRMS_ALLOWED_ORIGIN_PATTERNS:http://localhost:*,http://127.0.0.1:*}
 
 coze:
-  base-url: "https://api.coze.cn"
-  bot-id: "7531269592158257204"
-  token: "sat_w3Dfmxnsvggf3rgiKm5u2uAzjMrLRXwm8PTN2rT2iaxa0kcxXurcAFMEsY76wRbd"
-  connect-timeout-ms: 15000
-  read-timeout-ms: 60000
+  base-url: ${COZE_BASE_URL:https://api.coze.cn}
+  bot-id: ${COZE_BOT_ID:}
+  token: ${COZE_TOKEN:}
+  connect-timeout-ms: ${COZE_CONNECT_TIMEOUT_MS:15000}
+  read-timeout-ms: ${COZE_READ_TIMEOUT_MS:60000}

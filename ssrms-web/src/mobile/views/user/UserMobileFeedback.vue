@@ -3,9 +3,9 @@
     <div class="mobile-topbar">
       <div>
         <div class="mobile-topbar-title">评价与投诉</div>
-        <div class="mobile-topbar-subtitle">与桌面端一致：支持提交投诉、建议、表扬并查看自己的处理进度。</div>
+        <div class="mobile-topbar-subtitle">支持提交投诉、建议、表扬并查看自己的处理进度。</div>
       </div>
-      <button type="button" class="mobile-outline-btn" @click="loadFeedback">刷新</button>
+      <button type="button" class="mobile-ghost-btn" @click="loadFeedback">刷新</button>
     </div>
 
     <section class="mobile-section">
@@ -34,7 +34,7 @@
           <select v-model="form.reservationId">
             <option value="">不关联预约</option>
             <option v-for="item in reservationOptions" :key="item.id" :value="item.id">
-              {{ item.date }} {{ timeText(item.startTime) }}-{{ timeText(item.endTime) }} · {{ item.roomLabel || item.roomName || '自习室' }} · 座位 {{ item.seatNo || '-' }}
+              {{ reservationOptionLabel(item) }}
             </option>
           </select>
         </div>
@@ -155,6 +155,10 @@ export default {
     formatTime (value) {
       if (!value) return '-'
       return String(value).replace('T', ' ').slice(0, 16)
+    },
+    reservationOptionLabel (item) {
+      const room = item.roomName || item.roomLabel || '自习室'
+      return `${item.date} ${this.timeText(item.startTime)}-${this.timeText(item.endTime)} · ${room} · ${item.seatNo || '-'}号`
     }
   }
 }

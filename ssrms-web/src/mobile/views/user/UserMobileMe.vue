@@ -31,7 +31,7 @@
         <div class="mobile-field"><label>班级</label><input v-model="form.gradeClass" type="text" /></div>
         <div class="mobile-field"><label>常用校区</label><input v-model="form.commonCampus" type="text" /></div>
         <div class="mobile-field"><label>备注</label><textarea v-model="form.profileRemark"></textarea></div>
-        <div class="mobile-actions">
+        <div class="mobile-actions mobile-actions-between">
           <button type="button" class="mobile-action-btn" @click="saveProfile">保存资料</button>
           <button type="button" class="mobile-outline-btn" @click="$router.push('/m/user/notices')">查看公告</button>
           <button type="button" class="mobile-outline-btn" @click="logout">退出登录</button>
@@ -112,7 +112,7 @@ export default {
     },
     logout () {
       clearLoginUser()
-      this.$router.replace('/login')
+      this.$router.replace('/m')
     }
   }
 }

@@ -5,7 +5,7 @@
         <div class="mobile-topbar-title">预约座位</div>
         <div class="mobile-topbar-subtitle">先选校区和自习室，再挑选时间段与座位号。</div>
       </div>
-      <span class="mobile-chip">H5 用户完整链路</span>
+      <span class="mobile-chip">手机预约</span>
     </div>
 
     <div class="mobile-form-card">
@@ -27,7 +27,7 @@
         <label>自习室</label>
         <select v-model="form.roomId" :disabled="!form.building">
           <option value="">请选择自习室</option>
-          <option v-for="item in rooms" :key="item.id" :value="item.id">{{ item.roomName }}（开放 {{ item.openSeats || item.totalSeats || 0 }} 座）</option>
+          <option v-for="item in rooms" :key="item.id" :value="item.id">{{ item.roomName }}</option>
         </select>
       </div>
       <div class="mobile-field">

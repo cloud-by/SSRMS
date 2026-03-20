@@ -3,7 +3,6 @@ import { createRouter, createWebHistory } from 'vue-router'
 import DesktopPortal from '@/desktop/view/auth/DesktopPortal.vue'
 import DesktopUserLayout from '@/desktop/layouts/DesktopUserLayout.vue'
 import DesktopAdminLayout from '@/desktop/layouts/DesktopAdminLayout.vue'
-import MobilePortal from '@/mobile/views/auth/MobilePortal.vue'
 import MobileUserLayout from '@/mobile/layouts/MobileUserLayout.vue'
 import MobileAdminLayout from '@/mobile/layouts/MobileAdminLayout.vue'
 import UserMobileHome from '@/mobile/views/user/UserMobileHome.vue'
@@ -22,8 +21,8 @@ import AdminMobileMe from '@/mobile/views/admin/AdminMobileMe.vue'
 const routes = [
     { path: '/', redirect: '/login' },
     { path: '/login', name: 'Login', component: DesktopPortal },
-    { path: '/m', name: 'MobilePortal', component: MobilePortal },
-    { path: '/m/login', name: 'MobileLogin', component: DesktopPortal },
+    { path: '/m', name: 'MobileLogin', component: DesktopPortal, meta: { mobile: true } },
+    { path: '/m/login', redirect: '/m' },
     {
         path: '/user',
         component: DesktopUserLayout,
@@ -115,7 +114,7 @@ router.beforeEach((to, from, next) => {
     if (to.meta && to.meta.requiresAuth) {
         if (!user) {
             return next({
-                path: '/login',
+                path: to.meta.mobile ? '/m' : '/login',
                 query: {
                     redirect: to.fullPath,
                     ...(to.meta.mobile ? { mobile: '1' } : {})
@@ -131,8 +130,8 @@ router.beforeEach((to, from, next) => {
         }
     }
 
-    if (to.path === '/login' && user) {
-        return next(homePathByRole(user, to.query.mobile === '1'))
+    if ((to.path === '/login' || to.path === '/m') && user) {
+        return next(homePathByRole(user, to.path === '/m' || to.query.mobile === '1'))
     }
 
     next()

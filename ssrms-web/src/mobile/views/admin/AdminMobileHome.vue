@@ -3,8 +3,8 @@
     <div class="mobile-hero">
       <div class="mobile-split">
         <div>
-          <div>🧭 管理员移动工作台</div>
-          <div class="mobile-hero-subtitle">用于值班巡检、处理预约与查看待办。复杂配置仍建议在桌面端完成。</div>
+          <div class="mobile-hero-title">🧭 管理员工作台</div>
+          <div class="mobile-hero-subtitle">用于值班巡检、处理预约与查看待办，保留手机端真正常用的管理入口。</div>
         </div>
         <span class="mobile-badge info">轻量版</span>
       </div>
@@ -28,9 +28,9 @@
           <div class="mobile-stat-desc">处理中 {{ feedback.processing ?? 0 }}</div>
         </div>
         <div class="mobile-stat">
-          <div class="mobile-stat-label">开放座位数</div>
-          <div class="mobile-stat-value">{{ metrics.totalSeats ?? 0 }}</div>
-          <div class="mobile-stat-desc">本周违约率 {{ weekly.weekViolationRate ?? 0 }}%</div>
+          <div class="mobile-stat-label">本周违约率</div>
+          <div class="mobile-stat-value">{{ weekly.weekViolationRate ?? 0 }}%</div>
+          <div class="mobile-stat-desc">开放自习室 {{ metrics.openRooms ?? 0 }} 间</div>
         </div>
       </div>
     </section>
@@ -38,9 +38,9 @@
     <section class="mobile-section">
       <div class="mobile-section-title">快捷处理</div>
       <div class="mobile-card">
-        <div class="mobile-actions">
+        <div class="mobile-actions compact-four">
           <button type="button" class="mobile-action-btn" @click="$router.push('/m/admin/reservations')">处理预约</button>
-          <button type="button" class="mobile-outline-btn" @click="$router.push('/m/admin/users')">处理用户</button>
+          <button type="button" class="mobile-outline-btn" @click="$router.push('/m/admin/users')">用户处置</button>
           <button type="button" class="mobile-outline-btn" @click="$router.push('/m/admin/complaints')">投诉处理</button>
           <button type="button" class="mobile-outline-btn" @click="$router.push('/m/admin/notices')">公告查看</button>
         </div>

@@ -81,5 +81,7 @@ export default {
 
 .tab-label {
   line-height: 1.1;
+  white-space: nowrap;
+  font-size: 11px;
 }
 </style>

@@ -1,9 +1,8 @@
 <template>
-  <div class="login-page">
-    <div class="auth-wrapper">
-      <!-- 左侧：登录/注册 -->
-      <div class="auth-left">
-        <div class="auth-logo-row">
+  <div class="login-page" :class="{ 'login-page-mobile': isMobileAuth }">
+    <div class="auth-wrapper" :class="{ 'auth-wrapper-mobile': isMobileAuth }">
+      <div class="auth-left" :class="{ 'auth-left-mobile': isMobileAuth }">
+        <div class="auth-logo-row" :class="{ 'auth-logo-row-mobile': isMobileAuth }">
           <div class="logo-icon">
             <span class="logo-initial">自</span>
           </div>
@@ -13,19 +12,16 @@
           </div>
         </div>
 
-        <div class="auth-card">
-          <div class="mode-toggle">
+        <div class="auth-card" :class="{ 'auth-card-mobile': isMobileAuth }">
+          <div v-if="!isMobileAuth" class="mode-toggle">
             <button type="button" class="mode-btn" :class="{ active: isLogin }" @click="switchMode('login')">登录</button>
             <button type="button" class="mode-btn" :class="{ active: !isLogin }" @click="switchMode('register')">注册</button>
           </div>
 
-          <div v-if="isMobileAuth" class="mobile-auth-switch">
-            <button type="button" class="mobile-role-chip" :class="{ active: loginForm.role === 'student' }" @click="setLoginRole('student')">用户登录</button>
-            <button type="button" class="mobile-role-chip" :class="{ active: loginForm.role === 'admin' }" @click="setLoginRole('admin')">管理员登录</button>
-            <button type="button" class="mobile-role-chip mode" :class="{ active: !isLogin }" @click="switchMode(isLogin ? 'register' : 'login')">{{ isLogin ? '去注册' : '去登录' }}</button>
+          <div v-if="isMobileAuth" class="mobile-auth-heading">
+            <div class="mobile-auth-title">{{ isLogin ? '登录' : '注册' }}</div>
           </div>
 
-          <!-- 登录 -->
           <form v-if="isLogin" class="auth-form" @submit.prevent="handleLogin">
             <div class="form-group">
               <label class="form-label">账号</label>
@@ -37,15 +33,12 @@
               <input v-model="loginForm.password" class="form-input" type="password" placeholder="请输入密码" />
             </div>
 
-            <!-- 登录身份选择：只在登录时出现 -->
             <div v-if="!isMobileAuth" class="form-group form-inline">
               <label class="form-label-inline">登录身份</label>
-
               <label class="radio-label">
                 <input type="radio" value="student" v-model="loginForm.role" />
                 用户
               </label>
-
               <label class="radio-label">
                 <input type="radio" value="admin" v-model="loginForm.role" />
                 管理员
@@ -66,13 +59,8 @@
               还没有账号？
               <button type="button" class="link-btn" @click="switchMode('register')">立即注册</button>
             </div>
-
-            <div v-if="isMobileAuth" class="mobile-auth-extra-actions">
-              <button type="button" class="secondary-btn" @click="goMobileEntry">返回移动入口</button>
-            </div>
           </form>
 
-          <!-- 注册 -->
           <form v-else class="auth-form" @submit.prevent="handleRegister">
             <div class="form-group">
               <label class="form-label">账号</label>
@@ -122,7 +110,7 @@
               <div v-if="registerErrors.confirmPassword" class="field-error">{{ registerErrors.confirmPassword }}</div>
             </div>
 
-            <div class="form-helper" style="justify-content:flex-start;">
+            <div class="form-helper form-helper-start">
               <label class="check-label">
                 <input type="checkbox" v-model="registerForm.agree" />
                 已阅读并同意
@@ -136,15 +124,10 @@
               已有账号？
               <button type="button" class="link-btn" @click="switchMode('login')">直接登录</button>
             </div>
-
-            <div v-if="isMobileAuth" class="mobile-auth-extra-actions">
-              <button type="button" class="secondary-btn" @click="goMobileEntry">返回移动入口</button>
-            </div>
           </form>
         </div>
       </div>
 
-      <!-- 右侧文案 -->
       <div v-if="!isMobileAuth" class="auth-right">
         <div class="slogan-block">
           <h2 class="slogan-title">预约自习室的最佳通用解决方案</h2>
@@ -158,7 +141,6 @@
         </div>
       </div>
 
-      <!-- 用户协议弹窗 -->
       <div v-if="showAgreement" class="agreement-mask" @click.self="closeAgreement">
         <div class="agreement-dialog">
           <div class="agreement-header">
@@ -170,41 +152,30 @@
             <div class="agreement-scroll">
               <p><b>1. 协议说明</b></p>
               <p>本协议适用于自习室预约系统（以下简称“本系统”）提供的账号注册、登录、预约、签到、取消、违约处理、信用分管理等服务。用户注册或使用本系统即视为已阅读并同意本协议。</p>
-
               <p><b>2. 账号与信息</b></p>
               <p>用户应提供真实、准确、完整的注册信息，并妥善保管账号与密码。因账号泄露或密码保管不当造成的损失由用户自行承担。</p>
-
               <p><b>3. 预约与签到规则</b></p>
               <p>用户应按预约时间到场并完成签到。若系统或管理员设置了签到时限、迟到规则、自动释放规则等，用户应遵守相应要求。自习室资源有限，请合理预约、按需取消。</p>
-
               <p><b>4. 违约与信用分</b></p>
               <p>出现以下情形可能被判定为违约：预约后未按规定时间签到、恶意占座、频繁占用资源影响他人等。系统可依据规则对用户进行提醒、扣减信用分、限制预约、加入黑名单等处理。</p>
-
               <p><b>5. 禁止行为</b></p>
               <p>用户不得利用本系统从事任何违法违规行为，不得恶意攻击系统、刷接口、伪造签到、干扰座位状态或影响其他用户正常使用。</p>
-
               <p><b>6. 数据与隐私</b></p>
               <p>本系统会在提供服务所必需的范围内收集并处理用户信息（如学号、姓名、预约记录、签到记录、违约记录等），用于账号管理与服务改进。未经授权，本系统不会向无关第三方泄露用户信息，但法律法规另有规定或司法/行政机关依法要求的除外。</p>
-
               <p><b>7. 免责声明</b></p>
               <p>因不可抗力、网络故障、设备故障、系统维护升级等原因导致服务中断或数据延迟，本系统将尽力修复与恢复，但不对因此造成的间接损失承担责任。</p>
-
               <p><b>8. 协议变更</b></p>
               <p>本系统有权根据运营需要更新本协议。更新后的协议将以公告、弹窗或页面提示等方式告知，用户继续使用即视为接受变更。</p>
-
               <p><b>9. 联系方式</b></p>
               <p>如对本协议或系统使用有疑问，请联系系统管理员或学校相关管理部门。</p>
             </div>
           </div>
 
           <div class="agreement-footer">
-            <button type="button" class="primary-btn primary-btn-small" @click="agreeAndClose">
-              我已阅读并同意
-            </button>
+            <button type="button" class="primary-btn primary-btn-small" @click="agreeAndClose">我已阅读并同意</button>
           </div>
         </div>
       </div>
-
     </div>
   </div>
 </template>
@@ -217,9 +188,7 @@ export default {
   data () {
     return {
       mode: 'login',
-
       loginForm: { account: '', password: '', role: 'student', remember: true },
-
       registerForm: {
         account: '',
         studentNo: '',
@@ -228,15 +197,12 @@ export default {
         confirmPassword: '',
         agree: false
       },
-
       showAgreement: false,
-
       registerErrors: {
         account: '',
         password: '',
         confirmPassword: ''
       },
-
       accountTimer: null
     }
   },
@@ -245,7 +211,7 @@ export default {
       return this.mode === 'login'
     },
     isMobileAuth () {
-      return this.$route?.query?.mobile === '1' || this.$route?.path === '/m/login'
+      return this.$route?.path === '/m' || this.$route?.query?.mobile === '1' || this.$route?.path === '/m/login'
     }
   },
   mounted () {
@@ -263,7 +229,6 @@ export default {
     toast (type, msg) {
       ElMessage({ type, message: msg })
     },
-
     switchMode (next) {
       this.mode = next
       this.registerErrors.account = ''
@@ -274,94 +239,80 @@ export default {
         this.accountTimer = null
       }
     },
-
     handleForgot () {
       this.toast('info', '请联系管理员重置密码')
     },
-
     applyRoutePreset () {
       const query = this.$route?.query || {}
-      const mode = query.mode === 'register' ? 'register' : 'login'
-      const role = query.role === 'admin' ? 'admin' : 'student'
-      this.mode = mode
-      this.loginForm.role = role
+      this.mode = query.mode === 'register' ? 'register' : 'login'
+      if (!this.isMobileAuth) {
+        this.loginForm.role = query.role === 'admin' ? 'admin' : 'student'
+      }
     },
-    setLoginRole (role) {
-      this.loginForm.role = role
-      if (role === 'admin') this.mode = 'login'
-    },
-    goMobileEntry () {
-      this.$router.push('/m')
-    },
-
     handleShowAgreement () { this.showAgreement = true },
     closeAgreement () { this.showAgreement = false },
     agreeAndClose () {
       this.registerForm.agree = true
       this.showAgreement = false
     },
-
+    async loginByRole (account, password, roleId) {
+      const res = await this.$axios.post('/user/login', { account, password, roleId })
+      if (!res || res.code !== 200) {
+        throw new Error(res?.msg || '登录失败')
+      }
+      return res.data || {}
+    },
     async handleLogin () {
       const account = (this.loginForm.account || '').trim()
       const password = (this.loginForm.password || '').trim()
-      const roleStr = this.loginForm.role || 'student'
-      const roleId = roleStr === 'admin' ? 0 : 1
-
       if (!account || !password) {
         this.toast('warning', '请填写账号和密码')
         return
       }
-
-      try {
-        // request.js 已经 return response.data，所以这里 r 就是 Result
-        const r = await this.$axios.post('/user/login', { account, password, roleId })
-
-        if (!r || r.code !== 200) {
-          this.toast('error', r?.msg || '登录失败')
-          return
+      const candidates = this.isMobileAuth
+          ? [1, 0]
+          : [this.loginForm.role === 'admin' ? 0 : 1]
+      let user = null
+      let finalRoleId = null
+      let lastError = null
+      for (const roleId of candidates) {
+        try {
+          user = await this.loginByRole(account, password, roleId)
+          finalRoleId = user.roleId !== undefined && user.roleId !== null ? Number(user.roleId) : roleId
+          break
+        } catch (error) {
+          lastError = error
         }
-
-        const user = r.data || {}
-
-
-        // 黑名单用户：允许登录，但给出提示（预约接口会被后端拒绝）
-        const status = Number(user.blacklistFlag ?? user.blacklist_flag ?? user.status ?? 0)
-        // 约定：0=正常，1=预警，2=黑名单。只有 2 才视为黑名单限制
-        if (status === 2) {
-          this.toast('warning', '提示：你的账号当前处于黑名单受限状态，可以正常登录，但无法进行预约操作。如需恢复请联系管理员。')
-        }
-
-        const storage = this.loginForm.remember ? localStorage : sessionStorage
-        const finalRoleId = (user.roleId !== undefined && user.roleId !== null) ? user.roleId : roleId
-        storage.setItem('ssrmsUser', JSON.stringify({ ...user, roleId: finalRoleId }))
-
-        this.toast('success', '登录成功')
-
-        const redirect = this.$route?.query?.redirect
-        const mobile = this.$route?.query?.mobile === '1'
-        if (redirect) this.$router.replace(redirect)
-        else if (mobile) this.$router.replace(finalRoleId === 0 ? '/m/admin/home' : '/m/user/home')
-        else this.$router.replace(finalRoleId === 0 ? '/admin' : '/user')
-      } catch (e) {
-        const status = e?.response?.status
-        const msg = e?.response?.data?.msg || e?.message
-        this.toast('error', status ? `登录失败(${status})：${msg}` : `登录失败：${msg}`)
       }
+      if (!user) {
+        this.toast('error', lastError?.message || '登录失败')
+        return
+      }
+      const status = Number(user.blacklistFlag ?? user.blacklist_flag ?? user.status ?? 0)
+      if (status === 2) {
+        this.toast('warning', '提示：你的账号当前处于黑名单受限状态，可以正常登录，但无法进行预约操作。如需恢复请联系管理员。')
+      }
+      const storage = this.loginForm.remember ? localStorage : sessionStorage
+      localStorage.removeItem('ssrmsUser')
+      sessionStorage.removeItem('ssrmsUser')
+      storage.setItem('ssrmsUser', JSON.stringify({ ...user, roleId: finalRoleId }))
+      this.toast('success', '登录成功')
+      const redirect = this.$route?.query?.redirect
+      const mobile = this.isMobileAuth || this.$route?.query?.mobile === '1'
+      if (redirect) this.$router.replace(redirect)
+      else if (mobile) this.$router.replace(finalRoleId === 0 ? '/m/admin/home' : '/m/user/home')
+      else this.$router.replace(finalRoleId === 0 ? '/admin' : '/user')
     },
-
     async handleRegister () {
       await this.checkAccountExists()
       this.checkPasswordRules()
       this.checkPasswordMatch()
-
       if (this.registerErrors.account) return this.toast('error', this.registerErrors.account)
       if (this.registerErrors.password) return this.toast('error', this.registerErrors.password)
       if (this.registerErrors.confirmPassword) return this.toast('error', this.registerErrors.confirmPassword)
-
       const account = (this.registerForm.account || '').trim()
       const name = (this.registerForm.name || '').trim()
       const studentNo = (this.registerForm.studentNo || '').trim()
-
       if (!account || !name || !studentNo) {
         this.toast('warning', '请填写账号、学号和昵称')
         return
@@ -374,9 +325,7 @@ export default {
         this.toast('warning', '请先阅读并同意用户协议')
         return
       }
-
       try {
-        // request.js 已经 return response.data，所以这里 r 就是 Result
         const r = await this.$axios.post('/user/register', {
           account,
           name,
@@ -384,14 +333,12 @@ export default {
           password: this.registerForm.password,
           confirmPassword: this.registerForm.confirmPassword
         })
-
         if (!r || r.code !== 200) {
           const msg = r?.msg || '注册失败'
           if (String(msg).includes('已存在')) this.registerErrors.account = '该账号已存在'
           this.toast('error', msg)
           return
         }
-
         this.toast('success', '注册成功，请登录')
         this.switchMode('login')
       } catch (e) {
@@ -400,13 +347,11 @@ export default {
         this.toast('error', status ? `注册失败(${status})：${msg}` : `注册失败：${msg}`)
       }
     },
-
     scheduleCheckAccount () {
       if (this.mode !== 'register') return
       clearTimeout(this.accountTimer)
       this.accountTimer = setTimeout(() => this.checkAccountExists(), 350)
     },
-
     async checkAccountExists () {
       if (this.mode !== 'register') return
       const acc = (this.registerForm.account || '').trim()
@@ -422,38 +367,31 @@ export default {
         this.registerErrors.account = ''
       }
     },
-
     checkPasswordRules () {
       if (this.mode !== 'register') return
       const p = this.registerForm.password || ''
-
       if (!p) {
         this.registerErrors.password = ''
         return
       }
-
       if (!/^[A-Za-z0-9_]+$/.test(p)) {
         this.registerErrors.password = '不支持除字母、数字、_以外的字符'
         return
       }
-
       if (p.length < 6) {
         this.registerErrors.password = '密码长度至少6位'
         return
       }
-
       this.registerErrors.password = ''
     },
-
     checkPasswordMatch () {
       const p1 = this.registerForm.password || ''
       const p2 = this.registerForm.confirmPassword || ''
-
       if (!p2) {
         this.registerErrors.confirmPassword = ''
         return
       }
-      this.registerErrors.confirmPassword = (p1 !== p2) ? '密码不同' : ''
+      this.registerErrors.confirmPassword = p1 !== p2 ? '密码不同' : ''
     }
   }
 }
@@ -467,7 +405,6 @@ export default {
   justify-content: center;
   padding: 40px 16px;
 }
-
 .auth-wrapper {
   display: flex;
   width: 1040px;
@@ -479,7 +416,6 @@ export default {
   background-color: #ffffff;
   box-shadow: 0 30px 80px rgba(15, 23, 42, 0.35);
 }
-
 .auth-left {
   flex: 1;
   background-color: #f9fafb;
@@ -488,13 +424,11 @@ export default {
   padding: 40px 56px;
   overflow-y: auto;
 }
-
 .auth-logo-row {
   display: flex;
   align-items: center;
   margin-bottom: 32px;
 }
-
 .logo-icon {
   width: 44px;
   height: 44px;
@@ -508,15 +442,11 @@ export default {
   font-size: 20px;
   box-shadow: 0 10px 25px rgba(37, 99, 235, 0.4);
 }
-
 .logo-initial { transform: translateY(1px); }
-
 .logo-text { margin-left: 12px; }
 .logo-title { font-size: 18px; font-weight: 600; color: #111827; }
 .logo-subtitle { font-size: 12px; color: #9ca3af; }
-
 .auth-card { max-width: 420px; }
-
 .mode-toggle {
   display: inline-flex;
   padding: 4px;
@@ -524,7 +454,6 @@ export default {
   background-color: rgba(15, 23, 42, 0.04);
   margin-bottom: 12px;
 }
-
 .mode-btn {
   border: none;
   background: transparent;
@@ -535,23 +464,29 @@ export default {
   cursor: pointer;
   transition: all 0.15s ease;
 }
-
 .mode-btn.active {
   background-color: #ffffff;
   color: #111827;
   box-shadow: 0 8px 20px rgba(15, 23, 42, 0.16);
 }
-
+.mobile-auth-heading {
+  margin-bottom: 18px;
+}
+.mobile-auth-title {
+  margin-top: 12px;
+  font-size: 30px;
+  line-height: 1.15;
+  font-weight: 800;
+  color: #16233b;
+}
 .auth-form {
   display: flex;
   flex-direction: column;
   gap: 14px;
 }
-
 .form-group { display: flex; flex-direction: column; }
 .form-label { font-size: 13px; color: #4b5563; margin-bottom: 6px; }
 .form-label-inline { font-size: 13px; color: #4b5563; margin-right: 8px; }
-
 .form-input {
   border-radius: 10px;
   border: 1px solid #e5e7eb;
@@ -561,19 +496,16 @@ export default {
   background-color: #ffffff;
   transition: border-color 0.15s ease, box-shadow 0.15s ease;
 }
-
 .form-input:focus {
   border-color: #2563eb;
   box-shadow: 0 0 0 1px rgba(37, 99, 235, 0.2);
 }
-
 .form-inline {
   flex-direction: row;
   align-items: center;
   flex-wrap: wrap;
   gap: 12px;
 }
-
 .radio-label {
   font-size: 13px;
   color: #4b5563;
@@ -581,21 +513,23 @@ export default {
   align-items: center;
   gap: 4px;
 }
-
 .check-label {
   font-size: 12px;
   color: #4b5563;
   display: inline-flex;
   align-items: center;
   gap: 4px;
+  flex-wrap: wrap;
 }
-
 .form-helper {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  gap: 12px;
 }
-
+.form-helper-start {
+  justify-content: flex-start;
+}
 .primary-btn {
   margin-top: 4px;
   width: 100%;
@@ -610,12 +544,9 @@ export default {
   box-shadow: 0 12px 30px rgba(37, 99, 235, 0.45);
   transition: transform 0.12s ease, box-shadow 0.12s ease;
 }
-
 .primary-btn:hover { transform: translateY(-1px); box-shadow: 0 16px 36px rgba(37, 99, 235, 0.55); }
 .primary-btn:active { transform: translateY(0); box-shadow: 0 8px 22px rgba(37, 99, 235, 0.4); }
-
 .primary-btn-small { width: auto; min-width: 140px; height: 38px; font-size: 14px; }
-
 .link-btn {
   border: none;
   background: transparent;
@@ -624,30 +555,23 @@ export default {
   color: #2563eb;
   cursor: pointer;
 }
-
 .bottom-tip { margin-top: 6px; font-size: 12px; color: #6b7280; }
-
 .auth-right {
   flex: 1;
-  background: radial-gradient(circle at 0% 0%, #1f2937, #020617),
-  radial-gradient(circle at 100% 10%, #1d4ed8, #020617);
+  background: radial-gradient(circle at 0% 0%, #1f2937, #020617), radial-gradient(circle at 100% 10%, #1d4ed8, #020617);
   color: #ffffff;
   display: flex;
   align-items: center;
   justify-content: center;
   padding: 48px 60px;
 }
-
 .slogan-block { max-width: 420px; }
 .slogan-title { font-size: 26px; font-weight: 700; margin: 0 0 12px; }
 .slogan-desc { font-size: 14px; opacity: 0.9; margin: 0 0 16px; }
 .slogan-list { list-style: none; padding: 0; margin: 0 0 14px; font-size: 13px; opacity: 0.95; }
 .slogan-list li { margin-bottom: 4px; }
 .slogan-sign { font-size: 13px; opacity: 0.9; margin-top: 2px; }
-
 .field-error { margin-top: 6px; font-size: 12px; color: #ef4444; }
-
-/* 协议弹窗 */
 .agreement-mask {
   position: fixed;
   inset: 0;
@@ -657,7 +581,6 @@ export default {
   justify-content: center;
   z-index: 999;
 }
-
 .agreement-dialog {
   width: 720px;
   max-width: 95vw;
@@ -669,7 +592,6 @@ export default {
   flex-direction: column;
   overflow: hidden;
 }
-
 .agreement-header {
   display: flex;
   align-items: center;
@@ -677,9 +599,7 @@ export default {
   padding: 14px 20px;
   border-bottom: 1px solid #e5e7eb;
 }
-
 .agreement-title { margin: 0; font-size: 16px; font-weight: 600; color: #111827; }
-
 .agreement-close {
   border: none;
   background: transparent;
@@ -688,11 +608,8 @@ export default {
   cursor: pointer;
   color: #6b7280;
 }
-
 .agreement-close:hover { color: #111827; }
-
 .agreement-body { padding: 12px 20px 4px; flex: 1; }
-
 .agreement-scroll {
   max-height: 54vh;
   overflow-y: auto;
@@ -700,57 +617,16 @@ export default {
   color: #4b5563;
   line-height: 1.7;
 }
-
 .agreement-scroll p { margin: 6px 0; }
-
 .agreement-footer {
   padding: 10px 20px 16px;
   border-top: 1px solid #e5e7eb;
   display: flex;
   justify-content: flex-end;
 }
-
-/* 窄屏适配 */
-.mobile-auth-switch {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 10px;
-  margin-bottom: 16px;
-}
-.mobile-role-chip {
-  border: 1px solid #dce6fb;
-  background: #f6f8ff;
-  color: #5c6d86;
-  padding: 10px 12px;
-  border-radius: 14px;
-  font-size: 13px;
-  font-weight: 700;
-}
-.mobile-role-chip.active {
-  background: linear-gradient(135deg, #2f6bff, #4f88ff);
-  color: #fff;
-  border-color: transparent;
-  box-shadow: 0 12px 24px rgba(47, 107, 255, 0.2);
-}
-.mobile-role-chip.mode { background:#eef3ff; color:#2f6bff; }
-.mobile-role-chip.mode.active { background:#1d4ed8; }
-.secondary-btn {
-  width: 100%;
-  min-height: 44px;
-  border: none;
-  border-radius: 999px;
-  background: #edf3ff;
-  color: #2f6bff;
-  font-size: 14px;
-  font-weight: 700;
-}
-.mobile-auth-extra-actions { margin-top: 6px; }
 .login-page-mobile {
   padding: 18px 14px 32px;
-  background:
-      radial-gradient(circle at top left, rgba(79, 136, 255, 0.18), transparent 34%),
-      radial-gradient(circle at bottom right, rgba(87, 180, 255, 0.16), transparent 32%),
-      linear-gradient(180deg, #edf4ff 0%, #f7f8fc 52%, #eef2ff 100%);
+  background: radial-gradient(circle at top left, rgba(79, 136, 255, 0.18), transparent 34%), radial-gradient(circle at bottom right, rgba(87, 180, 255, 0.16), transparent 32%), linear-gradient(180deg, #edf4ff 0%, #f7f8fc 52%, #eef2ff 100%);
 }
 .auth-wrapper-mobile {
   width: min(100%, 460px);
@@ -763,7 +639,7 @@ export default {
 }
 .auth-left-mobile {
   width: 100%;
-  padding: 22px 20px 26px;
+  padding: 24px 20px 28px;
   background: transparent;
 }
 .auth-logo-row-mobile { margin-bottom: 22px; }
@@ -771,10 +647,17 @@ export default {
 .auth-wrapper-mobile .logo-icon { box-shadow: 0 14px 28px rgba(37, 99, 235, 0.28); }
 .auth-wrapper-mobile .logo-title { font-size: 20px; }
 .auth-wrapper-mobile .logo-subtitle { font-size: 13px; }
-.auth-wrapper-mobile .form-input { border-radius: 14px; min-height: 46px; }
-.auth-wrapper-mobile .primary-btn { height: 48px; }
-.auth-wrapper-mobile .bottom-tip { text-align: center; }
-
+.auth-wrapper-mobile .form-input {
+  border-radius: 14px;
+  min-height: 48px;
+  border-color: #d8e2f6;
+}
+.auth-wrapper-mobile .primary-btn { height: 50px; font-size: 17px; }
+.auth-wrapper-mobile .bottom-tip { text-align: left; font-size: 13px; }
+.auth-wrapper-mobile .form-helper {
+  flex-wrap: wrap;
+  align-items: center;
+}
 @media (max-width: 960px) {
   .auth-wrapper { flex-direction: column; height: auto; max-height: none; width: 100%; border-radius: 0; }
   .auth-left { padding: 24px 20px 18px; overflow-y: visible; }

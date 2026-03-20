@@ -23,21 +23,35 @@ const routes = [
     { path: '/m', name: 'MobilePortal', component: MobilePortal },
     {
         path: '/user',
-        name: 'UserHome',
         component: DesktopUserLayout,
         meta: {
             requiresAuth: true,
             role: 'user'
-        }
+        },
+        children: [
+            { path: '', redirect: '/user/home' },
+            { path: 'home', name: 'UserHome', component: () => import('@/desktop/view/user/UserDesktopHome.vue'), meta: { requiresAuth: true, role: 'user', pageKey: 'home' } },
+            { path: 'reserve', name: 'UserReserve', component: () => import('@/desktop/view/user/UserDesktopHome.vue'), meta: { requiresAuth: true, role: 'user', pageKey: 'user-reserve' } },
+            { path: 'reservations', name: 'UserReservations', component: () => import('@/desktop/view/user/UserDesktopHome.vue'), meta: { requiresAuth: true, role: 'user', pageKey: 'user-reservations' } },
+            { path: 'violations', name: 'UserViolations', component: () => import('@/desktop/view/user/UserDesktopHome.vue'), meta: { requiresAuth: true, role: 'user', pageKey: 'user-violations' } },
+            { path: 'feedback', name: 'UserFeedback', component: () => import('@/desktop/view/user/UserDesktopHome.vue'), meta: { requiresAuth: true, role: 'user', pageKey: 'user-feedback' } },
+            { path: 'profile', name: 'UserProfile', component: () => import('@/desktop/view/user/UserDesktopHome.vue'), meta: { requiresAuth: true, role: 'user', pageKey: 'user-profile' } }
+        ]
     },
     {
         path: '/admin',
-        name: 'AdminHome',
         component: DesktopAdminLayout,
         meta: {
             requiresAuth: true,
             role: 'admin'
-        }
+        },
+        children: [
+            { path: '', redirect: '/admin/home' },
+            { path: 'home', name: 'AdminHome', component: () => import('@/desktop/view/admin/AdminDesktopHome.vue'), meta: { requiresAuth: true, role: 'admin', pageKey: 'admin-home' } },
+            { path: 'reservations', name: 'AdminReservations', component: () => import('@/desktop/view/admin/AdminDesktopHome.vue'), meta: { requiresAuth: true, role: 'admin', pageKey: 'admin-reservations' } },
+            { path: 'users', name: 'AdminUsers', component: () => import('@/desktop/view/admin/AdminDesktopHome.vue'), meta: { requiresAuth: true, role: 'admin', pageKey: 'admin-users' } },
+            { path: 'complaints', name: 'AdminComplaints', component: () => import('@/desktop/view/admin/AdminDesktopHome.vue'), meta: { requiresAuth: true, role: 'admin', pageKey: 'admin-complaints' } }
+        ]
     },
     {
         path: '/m/user',
@@ -87,7 +101,7 @@ function getLoginUser () {
 function homePathByRole (user, mobile) {
     const isAdmin = user && Number(user.roleId) === 0
     if (mobile) return isAdmin ? '/m/admin/home' : '/m/user/home'
-    return isAdmin ? '/admin' : '/user'
+    return isAdmin ? '/admin/home' : '/user/home'
 }
 
 router.beforeEach((to, from, next) => {

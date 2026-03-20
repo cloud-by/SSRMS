@@ -8,7 +8,7 @@
           <div class="home-intro">
             <h2 class="page-title">{{ timeGreeting }}，欢迎使用自习室预约系统（学生端）</h2>
             <p class="page-subtitle">
-              今天是 {{ todayStr }} · {{ weekDayStr }}。你可以在这里查看自习室开放情况、预约座位、查看自己的预约记录以及违规状态等。
+              今天是 {{ todayStr }} · {{ weekDayStr }}。你可以在这里查看自习室开放情况、预约座位，以及自己的预约记录等。
             </p>
           </div>
 
@@ -150,8 +150,6 @@
           </div>
 
 
-
-
           <!-- 公告列表弹窗：查看全部（弹窗） -->
           <el-dialog
               v-model="noticeAllVisible"
@@ -269,7 +267,6 @@
                 />
               </div>
             </div>
-
 
 
           </el-dialog>
@@ -644,7 +641,7 @@
       <div class="card card-reservations">
         <h2 class="page-title">预约与签到签退</h2>
         <p class="page-subtitle">
-          管理你的预约记录，支持签到、取消与签退；也可以通过筛选快速查看待签到或违约记录。
+          管理你的预约记录，支持签到、取消与签退；也可以通过筛选快速查看待签到记录。
         </p>
 
         <!-- 预约概览：风格对齐你给的“图片二” -->
@@ -693,14 +690,6 @@
 
         <div class="res-toolbar">
           <div class="res-toolbar-left">
-            <button
-                type="button"
-                class="res-chip"
-                :class="{ active: onlyViolation }"
-                @click="onlyViolation = !onlyViolation"
-            >
-              仅查看违约记录
-            </button>
             <button
                 type="button"
                 class="res-chip"
@@ -812,122 +801,6 @@
               :class="{ 'pager-btn-disabled': reservationPageIndex >= totalPages }"
               :disabled="reservationPageIndex >= totalPages"
               @click="gotoNextPage"
-          >
-            下一页
-          </button>
-        </div>
-      </div>
-    </div>
-
-    <!-- 违规记录 -->
-    <div v-else-if="currentPage === 'user-violations'">
-      <div class="card violation-record-card">
-        <h2 class="page-title">违规记录与信用分</h2>
-        <p class="page-subtitle">
-          信用分从 100 开始，未签到、迟到等行为会扣分。
-        </p>
-
-        <div class="credit-panel" :class="creditLevelClass">
-          <div class="credit-panel-left">
-            <div class="credit-ring" :class="creditLevelClass">
-              <div class="credit-ring-num">{{ currentCreditScore }}</div>
-              <div class="credit-ring-label">信用分</div>
-            </div>
-          </div>
-
-          <div class="credit-panel-right">
-            <div class="credit-head">
-              <div class="credit-head-title">当前信用状态</div>
-              <span class="credit-level-pill" :class="creditLevelClass">{{ creditLevelText }}</span>
-            </div>
-
-            <div class="credit-sub">
-              信用分从 100 开始，迟到、未签到等行为会扣分。
-            </div>
-
-            <div class="credit-bar">
-              <div class="credit-bar-inner" :class="creditLevelClass" :style="creditBarStyle"></div>
-            </div>
-
-            <div class="credit-note" :class="creditLevelClass">
-              <span class="credit-note-strong">提示：</span>
-              <span>{{ creditRiskTip }}</span>
-            </div>
-          </div>
-        </div>
-
-        <div class="table-wrapper">
-          <table class="table violation-table">
-            <thead>
-            <tr>
-              <th class="col-no">预约编号</th>
-              <th class="col-campus">校区</th>
-              <th class="col-building">建筑</th>
-              <th class="col-room">自习室</th>
-              <th class="col-date">日期</th>
-              <th class="col-time">时间段</th>
-              <th class="col-seat">座位号</th>
-              <th class="col-vtype">违约类型</th>
-              <th class="col-penalty">扣分</th>
-              <th class="col-remark">备注</th>
-            </tr>
-            </thead>
-
-            <tbody>
-            <tr v-if="!pagedViolations.length">
-              <td colspan="10" style="text-align: center; color: #999;">
-                暂无违规记录
-              </td>
-            </tr>
-
-            <tr v-for="item in pagedViolations" :key="(item.reservationNo || item.reservationId || item.id) + '-' + (item.violationType || '')">
-              <td class="col-no">{{ item.reservationNo || item.reservationId }}</td>
-              <td class="col-campus">{{ item.campus || '-' }}</td>
-              <td class="col-building">{{ item.building || '-' }}</td>
-              <td class="col-room">{{ item.roomName || '-' }}</td>
-              <td class="col-date">{{ item.date }}</td>
-              <td class="col-time">{{ formatTimeRange(item) || '-' }}</td>
-              <td class="col-seat">{{ item.seatNo || '-' }}</td>
-              <td class="col-vtype">
-                <span class="violation-tag" :class="violationTypeClass(item.violationType)">
-                  {{ item.violationType }}
-                </span>
-              </td>
-              <td class="col-penalty">
-                <span class="penalty-num">{{ item.penaltyScore }}</span>
-              </td>
-              <td class="col-remark">
-                <span class="remark-text" :title="item.remark">{{ item.remark }}</span>
-              </td>
-            </tr>
-            </tbody>
-          </table>
-        </div>
-
-        <!-- 分页器 -->
-        <div class="pager" v-if="violationTotalPages > 1">
-          <!-- 上一页 -->
-          <button
-              type="button"
-              class="pager-btn"
-              :class="{ 'pager-btn-disabled': violationPageIndex <= 1 }"
-              :disabled="violationPageIndex <= 1"
-              @click="gotoPrevViolationPage"
-          >
-            上一页
-          </button>
-
-          <div class="pager-center">
-            第 {{ violationPageIndex }} / {{ violationTotalPages }} 页
-          </div>
-
-          <!-- 下一页 -->
-          <button
-              type="button"
-              class="pager-btn"
-              :class="{ 'pager-btn-disabled': violationPageIndex >= violationTotalPages }"
-              :disabled="violationPageIndex >= violationTotalPages"
-              @click="gotoNextViolationPage"
           >
             下一页
           </button>
@@ -1376,11 +1249,6 @@ export default {
       pageSize: 13,
       reservationPageIndex: 1,
 
-      // 违规记录相关
-      myViolations: [],
-      violationPageIndex: 1,
-      violationPageSize: 13,
-
       // 个人中心表单数据（模板里用的是这些字段名，所以这里不改字段名）
       profileForm: {
         name: '',
@@ -1411,7 +1279,7 @@ export default {
         { label: '服务评价', value: 'service' },
         { label: '建议 / 功能优化', value: 'suggestion' },
         { label: '投诉', value: 'complaint' },
-        { label: '申诉（预约/违规等）', value: 'appeal' },
+        { label: '申诉（预约等）', value: 'appeal' },
         { label: '其他', value: 'other' }
       ],
       feedbackForm: {
@@ -1467,7 +1335,6 @@ export default {
 
       homeNoticeLimit: 3,
       noticeReadIds: [],
-      onlyViolation: false,
       onlyPending: false,
       currentCreditScore: 100,
 
@@ -1639,19 +1506,6 @@ export default {
       return this.displayReservations.slice(start, end)
     },
 
-    violationTotalPages () {
-      if (!this.myViolations.length) return 0
-      return Math.ceil(this.myViolations.length / this.violationPageSize)
-    },
-    pagedViolations () {
-      if (!this.myViolations.length) return []
-      const total = this.violationTotalPages || 1
-      const page = Math.min(this.violationPageIndex, total)
-      const start = (page - 1) * this.violationPageSize
-      const end = start + this.violationPageSize
-      return this.myViolations.slice(start, end)
-    },
-
     todayStr () {
       const d = new Date()
       return `${d.getMonth() + 1} 月 ${d.getDate()} 日`
@@ -1694,11 +1548,7 @@ export default {
 
       const norm = s => String(s ?? '').trim().toLowerCase()
       const isPending = (x) => norm(x.status) === 'reserved'
-      const isViolation = (x) => ['late', 'no_show'].includes(norm(x.status))
 
-      if (this.onlyViolation) {
-        return list.filter(isViolation).sort(byDateTimeAsc)
-      }
       if (this.onlyPending) {
         return list.filter(isPending).sort(byDateTimeAsc)
       }
@@ -1788,7 +1638,7 @@ export default {
     reservationHintText () {
       const s = this.reservationStats
       if (s.pending > 0) return `你有 ${s.pending} 条待签到记录，建议按时到达并签到。`
-      if (s.late > 0 || s.noShow > 0) return `你有 ${s.late + s.noShow} 条违约记录，建议按时签到，避免迟到或未签到。`
+      if (s.late > 0 || s.noShow > 0) return `你有 ${s.late + s.noShow} 条迟到/未签到记录，建议按时签到。`
       return '保持良好习惯：按时到达并签到，结束后及时签退。'
     },
 
@@ -2286,14 +2136,6 @@ export default {
       }
     },
 
-    violationTypeClass (type) {
-      const t = (type || '').toString()
-      if (t.includes('未签到')) return 'vt-no-show'
-      if (t.includes('迟到')) return 'vt-late'
-      return 'vt-other'
-    },
-
-
     gotoPrevPage () {
       if (this.reservationPageIndex > 1) this.reservationPageIndex--
     },
@@ -2380,36 +2222,6 @@ export default {
       } catch (e) {
         console.error(e)
       }
-    },
-
-    async loadMyViolations () {
-      if (!this.ensureCurrentUserId()) return
-
-      try {
-        // 这里默认不弹“刷新未签到”的提醒，避免用户一进页面就被打断
-        await this.refreshNoShowStatus({ notify: false })
-
-        const res = await this.$axios.get('/reservation/violations', {
-          params: { userId: this.currentUserId }
-        })
-
-        const list = Array.isArray(this.normalizeData(res)) ? this.normalizeData(res).slice() : []
-        this.myViolations = list
-        this.violationPageIndex = 1
-      } catch (e) {
-        console.error(e)
-        alert('加载违规记录失败')
-      }
-
-      await this.loadUserProfile()
-
-    },
-
-    gotoPrevViolationPage () {
-      if (this.violationPageIndex > 1) this.violationPageIndex--
-    },
-    gotoNextViolationPage () {
-      if (this.violationPageIndex < this.violationTotalPages) this.violationPageIndex++
     },
 
     async loadUserProfile () {
@@ -3188,7 +3000,6 @@ export default {
           this.loadUserProfile()
         }
         if (newVal === 'user-reserve') this.initReserveRooms()
-        if (newVal === 'user-violations') this.loadMyViolations()
         if (newVal === 'user-profile') this.loadUserProfile()
         if (newVal === 'user-feedback') this.reloadMyFeedback()
       }
@@ -3196,13 +3007,8 @@ export default {
     myReservations () {
       this.reservationPageIndex = 1
     },
-    onlyViolation (v) {
+    onlyPending () {
       this.reservationPageIndex = 1
-      if (v) this.onlyPending = false
-    },
-    onlyPending (v) {
-      this.reservationPageIndex = 1
-      if (v) this.onlyViolation = false
     }
   }
 }
@@ -3232,12 +3038,6 @@ export default {
   color: #111827;
 }
 
-.page-subtitle {
-  font-size: 15px;
-  color: #6b7280;
-  margin-bottom: 16px;
-}
-
 /* 公共表格样式 */
 
 .table-wrapper {
@@ -3265,83 +3065,6 @@ export default {
   text-align: left;
   font-weight: 600;
   color: #374151;
-}
-
-/* 违规记录表格（v3：编号不改字体；全部单行省略号；压缩前面间距给备注留空间） */
-.violation-record-card .violation-table {
-  width: 100%;
-  table-layout: fixed;
-  --vio-col-pad-x: 10px; /* 更紧凑的列间距 */
-}
-
-.violation-record-card .violation-table th,
-.violation-record-card .violation-table td {
-  padding: 10px var(--vio-col-pad-x);
-  vertical-align: middle;
-
-  /* 单行显示：超出省略号（包含备注） */
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-/* 列宽（百分比，总和 100%，给“备注”更多空间） */
-.violation-record-card .violation-table th.col-no,
-.violation-record-card .violation-table td.col-no { width: 20%; }
-
-.violation-record-card .violation-table th.col-campus,
-.violation-record-card .violation-table td.col-campus { width: 7%; }
-
-.violation-record-card .violation-table th.col-building,
-.violation-record-card .violation-table td.col-building { width: 10%; }
-
-.violation-record-card .violation-table th.col-room,
-.violation-record-card .violation-table td.col-room { width: 6%; }
-
-.violation-record-card .violation-table th.col-date,
-.violation-record-card .violation-table td.col-date { width: 9%; }
-
-.violation-record-card .violation-table th.col-time,
-.violation-record-card .violation-table td.col-time { width: 10%; }
-
-.violation-record-card .violation-table th.col-seat,
-.violation-record-card .violation-table td.col-seat { width: 6%; text-align: center; }
-
-.violation-record-card .violation-table th.col-vtype,
-.violation-record-card .violation-table td.col-vtype { width: 8%; text-align: center; }
-
-.violation-record-card .violation-table th.col-penalty,
-.violation-record-card .violation-table td.col-penalty { width: 5%; text-align: center; }
-
-.violation-record-card .violation-table th.col-remark,
-.violation-record-card .violation-table td.col-remark { width: 19%; }
-
-.violation-record-card .violation-table th.col-remark,
-.violation-record-card .violation-table td.col-remark {
-  padding-left: calc(var(--vio-col-pad-x) + 10px); /* 扣分→备注 之间更松一点 */
-}
-
-.violation-record-card .violation-table th.col-penalty,
-.violation-record-card .violation-table td.col-penalty {
-  padding-right: calc(var(--vio-col-pad-x) + 6px);
-}
-
-/* 备注文字也严格一行（防止 span 自己换行） */
-.violation-record-card .violation-table td.col-remark .remark-text {
-  display: inline-block;
-  max-width: 100%;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  line-height: 1.35;
-}
-
-/* 细节：斑马纹 + hover */
-.violation-record-card .violation-table tbody tr:nth-child(even) td {
-  background: #fafafa;
-}
-.violation-record-card .violation-table tbody tr:hover td {
-  background: #f5f7ff;
 }
 
 .table tr:nth-child(even) td {
@@ -4566,12 +4289,6 @@ export default {
   overflow-y: auto;
 }
 
-.notice-item {
-  display: flex;
-  align-items: flex-start;
-  gap: 8px;
-}
-
 .notice-item-click {
   cursor: pointer;
 }
@@ -4825,6 +4542,10 @@ export default {
   align-items: center;
   justify-content: space-between;
   margin-bottom: 10px;
+  padding: 10px 12px;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  background: #f9fafb;
 }
 
 .notice-all-filter {
@@ -4843,9 +4564,6 @@ export default {
   color: #6b7280;
 }
 
-.notice-list-all {
-  max-height: 420px;
-}
 
 .notice-pagination {
   margin-top: 12px;
@@ -5155,10 +4873,6 @@ export default {
 
 .my-res-table { table-layout: fixed; }
 
-.my-res-table th,
-.my-res-table td {
-  padding: 10px 8px;
-}
 
 .my-res-table th.col-no,      .my-res-table td.col-no      { width: 140px; padding-right: 4px; }
 .my-res-table th.col-campus,  .my-res-table td.col-campus  { width: 80px;  padding-left: 4px;  }
@@ -5258,12 +4972,6 @@ export default {
 }
 
 /* 公告中心：筛选条更像“工具栏” */
-.notice-all-head{
-  padding: 10px 12px;
-  border: 1px solid #e5e7eb;
-  border-radius: 12px;
-  background: #f9fafb;
-}
 
 .notice-type-select :deep(.el-input__wrapper){
   border-radius: 999px;
@@ -5307,221 +5015,6 @@ export default {
 .notice-list-all{
   max-height: calc(100vh - 260px);
 }
-
-
-
-
-/* 违规记录表格字体与"我的预约"一致 */
-.violation-record-card .table{
-  font-size: 14px;
-}
-.violation-record-card .table thead th{
-  font-size: 14px;
-}
-
-
-
-/* ===========================
-   违规记录页：信用分面板（更接近“我的预约”的风格）
-   =========================== */
-
-.credit-panel{
-  display: grid;
-  grid-template-columns: 140px 1fr;
-  gap: 16px;
-  align-items: center;
-  padding: 14px 14px;
-  border: 1px solid #e5e7eb;
-  border-radius: 14px;
-  background: #f9fafb;
-  margin-top: 10px;
-  margin-bottom: 14px;
-}
-
-@media (max-width: 900px){
-  .credit-panel{
-    grid-template-columns: 1fr;
-  }
-}
-
-.credit-panel-left{
-  display: flex;
-  justify-content: center;
-}
-
-.credit-ring{
-  width: 116px;
-  height: 116px;
-  border-radius: 999px;
-  background: #ffffff;
-  border: 1px solid #e5e7eb;
-  box-shadow: 0 6px 18px rgba(17, 24, 39, 0.06);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-}
-
-.credit-ring-num{
-  font-size: 34px;
-  font-weight: 800;
-  line-height: 1;
-}
-
-.credit-ring-label{
-  margin-top: 6px;
-  font-size: 12px;
-  color: #6b7280;
-}
-
-.credit-panel-right{
-  min-width: 0;
-}
-
-.credit-head{
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-}
-
-.credit-head-title{
-  font-weight: 800;
-  color: #111827;
-}
-
-.credit-level-pill{
-  font-size: 12px;
-  font-weight: 700;
-  padding: 4px 10px;
-  border-radius: 999px;
-  border: 1px solid #e5e7eb;
-  background: #fff;
-  color: #374151;
-  white-space: nowrap;
-}
-
-.credit-sub{
-  margin-top: 6px;
-  color: #6b7280;
-  font-size: 13px;
-  line-height: 1.5;
-}
-
-.credit-bar{
-  margin-top: 10px;
-  height: 10px;
-  border-radius: 999px;
-  background: #e5e7eb;
-  overflow: hidden;
-}
-
-.credit-bar-inner{
-  height: 100%;
-  border-radius: 999px;
-  background: #9ca3af;
-}
-
-.credit-note{
-  margin-top: 10px;
-  padding: 10px 12px;
-  border-radius: 12px;
-  border: 1px dashed rgba(107, 114, 128, 0.35);
-  background: rgba(107, 114, 128, 0.06);
-  color: #374151;
-  font-size: 13px;
-  line-height: 1.45;
-}
-
-.credit-note-strong{
-  font-weight: 800;
-}
-
-/* 分档颜色（只作用于文字/条，不给你整“血压飙升”的大红底） */
-.credit-good .credit-ring-num{ color: #16a34a; }
-.credit-warn .credit-ring-num{ color: #d97706; }
-.credit-bad  .credit-ring-num{ color: #dc2626; }
-
-.credit-good .credit-bar-inner{ background: #16a34a; }
-.credit-warn .credit-bar-inner{ background: #d97706; }
-.credit-bad  .credit-bar-inner{ background: #dc2626; }
-
-.credit-good .credit-level-pill{ border-color: rgba(22, 163, 74, 0.35); color: #16a34a; }
-.credit-warn .credit-level-pill{ border-color: rgba(217, 119, 6, 0.35); color: #d97706; }
-.credit-bad  .credit-level-pill{ border-color: rgba(220, 38, 38, 0.35); color: #dc2626; }
-
-.credit-good .credit-note{ border-color: rgba(22, 163, 74, 0.35); background: rgba(22, 163, 74, 0.06); }
-.credit-warn .credit-note{ border-color: rgba(217, 119, 6, 0.35); background: rgba(217, 119, 6, 0.06); }
-.credit-bad  .credit-note{ border-color: rgba(220, 38, 38, 0.35); background: rgba(220, 38, 38, 0.06); }
-
-/* ===========================
-   违规记录表：列宽、间距、标签
-   =========================== */
-
-.violation-table th.col-no,       .violation-table td.col-no{ width: 250px; padding-right: 4px; }
-.violation-table th.col-campus,   .violation-table td.col-campus{ width: 120px; padding-left: 4px; }
-.violation-table th.col-building, .violation-table td.col-building{ width: 120px; }
-.violation-table th.col-room,     .violation-table td.col-room{ width: 120px; }
-.violation-table th.col-date,     .violation-table td.col-date{ width: 150px; }
-.violation-table th.col-time,     .violation-table td.col-time{ width: 150px; }
-.violation-table th.col-seat,     .violation-table td.col-seat{ width: 120px; text-align: center; }
-.violation-table th.col-vtype,    .violation-table td.col-vtype{ width: 150px; text-align: center; }
-.violation-table th.col-penalty,  .violation-table td.col-penalty{ width: 120px; text-align: center; }
-.violation-table th.col-remark,   .violation-table td.col-remark{
-  min-width: 250px;
-  padding-right: 14px;
-  padding-left: 14px;
-}
-
-.violation-table td.col-no,
-.violation-table td.col-building,
-.violation-table td.col-remark{
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.violation-tag{
-  font-weight: 800;
-}
-
-.violation-tag.vt-late{
-  color: #d97706;
-}
-
-.violation-tag.vt-no-show{
-  color: #dc2626;
-}
-
-.violation-tag.vt-other{
-  color: #374151;
-}
-
-.penalty-num{
-  font-weight: 800;
-  color: #dc2626;
-}
-
-.remark-text{
-  display: inline-block;
-  max-width: 100%;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-/* 扣分 ↔ 备注：增加两列之间的“空隙感”（不影响其它列） */
-.violation-record-card .violation-table th.col-penalty,
-.violation-record-card .violation-table td.col-penalty{
-  padding-right: calc(var(--vio-col-pad-x) + 14px);
-}
-
-.violation-record-card .violation-table th.col-remark,
-.violation-record-card .violation-table td.col-remark{
-  padding-left: calc(var(--vio-col-pad-x) + 14px);
-  padding-right: calc(var(--vio-col-pad-x) + 10px);
-}
-
-
 
 /* ===========================
    “我的预约”页（图片二风格）
@@ -5715,107 +5208,48 @@ export default {
   background: #ffffff;
 }
 
-
 /* ===========================
-   我的预约 & 违规记录：统一排版（不改功能）
-   重点：字体 / 粗细 / 间距 / 列宽
+   我的预约：统一排版
    =========================== */
 
-.card-reservations,
-.violation-record-card{
-  --u-title-size: 22px;
-  --u-subtitle-size: 14px;
-  --u-gap: 14px;
-
-  --u-table-font: 13px;
-  --u-table-pad-y: 10px;
-  --u-table-pad-x: 12px;
-}
-
-/* 标题 / 副标题（两页一致） */
-.card-reservations .page-title,
-.violation-record-card .page-title{
-  font-size: var(--u-title-size) !important;
+.card-reservations .page-title{
+  font-size: 22px !important;
   font-weight: 800 !important;
   margin: 0 0 8px 0 !important;
 }
 
-.card-reservations .page-subtitle,
-.violation-record-card .page-subtitle{
-  font-size: var(--u-subtitle-size) !important;
-  margin: 0 0 var(--u-gap) 0 !important;
+.card-reservations .page-subtitle{
+  font-size: 14px !important;
+  margin: 0 0 14px 0 !important;
 }
 
-/* 表格区块间距（两页一致） */
-.card-reservations .table-wrapper,
-.violation-record-card .table-wrapper{
-  margin-top: var(--u-gap) !important;
-  margin-bottom: var(--u-gap) !important;
+.card-reservations .table-wrapper{
+  margin-top: 14px !important;
+  margin-bottom: 14px !important;
 }
 
-.card-reservations .pager,
-.violation-record-card .pager{
-  margin-top: var(--u-gap) !important;
+.card-reservations .pager{
+  margin-top: 14px !important;
 }
 
-/* 表格：字号 / 行高 / 列间距（两页一致） */
-.card-reservations .table,
-.violation-record-card .table{
-  font-size: var(--u-table-font) !important;
+.card-reservations .table{
+  font-size: 13px !important;
 }
 
 .card-reservations .table th,
-.card-reservations .table td,
-.violation-record-card .table th,
-.violation-record-card .table td{
-  padding: var(--u-table-pad-y) var(--u-table-pad-x) !important;
+.card-reservations .table td{
+  padding: 10px 12px !important;
 }
 
-/* “我的预约”表格：覆盖之前更窄的 padding / 4px 微调，避免列距不统一 */
 .my-res-table th,
 .my-res-table td{
-  padding: var(--u-table-pad-y) var(--u-table-pad-x) !important;
+  padding: 10px 12px !important;
 }
 
 .my-res-table th.col-no,      .my-res-table td.col-no,
 .my-res-table th.col-campus,  .my-res-table td.col-campus{
-  padding-left: var(--u-table-pad-x) !important;
-  padding-right: var(--u-table-pad-x) !important;
-}
-
-/* “违规记录”表格：列距更紧凑，尽量保证宽屏下可一行展示 */
-.violation-record-card .violation-table{
-  --vio-col-pad-x: var(--u-table-pad-x) !important;
-}
-
-/* 扣分 ↔ 备注：两列之间留更明显的间距 */
-.violation-record-card .violation-table th.col-penalty,
-.violation-record-card .violation-table td.col-penalty{
-  padding-right: calc(var(--u-table-pad-x) + 12px) !important;
-}
-
-.violation-record-card .violation-table th.col-remark,
-.violation-record-card .violation-table td.col-remark{
-  padding-left: calc(var(--u-table-pad-x) + 16px) !important;
-  padding-right: var(--u-table-pad-x) !important;
-}
-/* 覆盖：违规记录列宽（更接近“我的预约”风格） */
-.violation-table th.col-no,       .violation-table td.col-no{ width: 160px !important; }
-.violation-table th.col-campus,   .violation-table td.col-campus{ width: 70px !important; }
-.violation-table th.col-building, .violation-table td.col-building{ width: 90px !important; }
-.violation-table th.col-room,     .violation-table td.col-room{ width: 70px !important; }
-.violation-table th.col-date,     .violation-table td.col-date{ width: 100px !important; }
-.violation-table th.col-time,     .violation-table td.col-time{ width: 100px !important; }
-.violation-table th.col-seat,     .violation-table td.col-seat{ width: 60px !important; text-align: center !important; }
-.violation-table th.col-vtype,    .violation-table td.col-vtype{ width: 90px !important; text-align: center !important; }
-.violation-table th.col-penalty,  .violation-table td.col-penalty{ width: 60px !important; text-align: center !important; }
-.violation-table th.col-remark,   .violation-table td.col-remark{ min-width: 160px !important; }
-
-/* 取消 col-no/col-campus 里原本的 4px 微调，让列间距彻底统一 */
-.violation-table th.col-no,      .violation-table td.col-no,
-.violation-table th.col-campus,  .violation-table td.col-campus{
-  padding-left: var(--u-table-pad-x) !important;
-  padding-right: var(--u-table-pad-x) !important;
+  padding-left: 12px !important;
+  padding-right: 12px !important;
 }
 
 </style>

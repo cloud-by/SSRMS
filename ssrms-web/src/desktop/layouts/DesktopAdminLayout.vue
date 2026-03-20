@@ -1,21 +1,25 @@
 <template>
-  <div class="app-wrapper">
+  <div class="desktop-shell">
     <AdminAside
         :current-page="currentPage"
         @change-page="changePage"
     />
 
-    <div class="main-area">
+    <div class="desktop-main">
       <AdminHeader
           :current-page="currentPage"
           @logout="handleLogout"
       />
-      <div class="content-area">
-        <AdminHome
-            :current-page="currentPage"
-            @change-page="changePage"
-        />
-      </div>
+
+      <main class="desktop-content">
+        <router-view v-slot="{ Component, route }">
+          <component
+              :is="Component"
+              :current-page="route.meta.pageKey || currentPage"
+              @change-page="changePage"
+          />
+        </router-view>
+      </main>
     </div>
   </div>
 </template>
@@ -24,23 +28,25 @@
 import { ElMessageBox, ElMessage } from 'element-plus'
 import AdminHeader from '../components/AdminHeader.vue'
 import AdminAside from '../components/AdminAside.vue'
-import AdminHome from '../view/admin/AdminDesktopHome.vue'
+import { adminDesktopNavItems } from '../config/adminNavigation'
 
 export default {
-  name: 'AdminIndex',
+  name: 'DesktopAdminLayout',
   components: {
     AdminHeader,
-    AdminAside,
-    AdminHome
+    AdminAside
   },
-  data () {
-    return {
-      currentPage: 'admin-home'
+  computed: {
+    currentPage () {
+      return this.$route.meta.pageKey || 'admin-home'
     }
   },
   methods: {
     changePage (page) {
-      this.currentPage = page
+      const matchedItem = adminDesktopNavItems.find(item => item.page === page)
+      if (matchedItem && matchedItem.path !== this.$route.path) {
+        this.$router.push(matchedItem.path)
+      }
     },
 
     async handleLogout () {
@@ -55,17 +61,13 @@ export default {
             }
         )
 
-        // 关键：路由守卫用的是 ssrmsUser，所以必须删它
         localStorage.removeItem('ssrmsUser')
-
-        // 如果你登录时还存过 token，也顺手清掉（不影响没存的情况）
         localStorage.removeItem('ssrmsToken')
         localStorage.removeItem('token')
         sessionStorage.removeItem('ssrmsUser')
         sessionStorage.removeItem('ssrmsToken')
         sessionStorage.removeItem('token')
 
-        // 可选：如果你给 axios 设过默认 Authorization，这里顺手清
         if (this.$axios && this.$axios.defaults && this.$axios.defaults.headers) {
           delete this.$axios.defaults.headers.common.Authorization
         }
@@ -73,7 +75,7 @@ export default {
         ElMessage.success('已退出登录')
         this.$router.replace('/login')
       } catch (e) {
-        // 点了取消就不做任何事
+        // 用户取消退出时不做处理
       }
     }
   }
@@ -81,34 +83,33 @@ export default {
 </script>
 
 <style scoped>
-/* 整体布局与 UserIndex 保持一致 */
-.app-wrapper {
+.desktop-shell {
   min-height: 100vh;
   display: flex;
-  background-color: #f5f7fb; /* 统一背景色 */
+  background-color: #f5f7fb;
 }
 
-.main-area {
+.desktop-main {
   flex: 1;
   display: flex;
   flex-direction: column;
 }
 
-.content-area {
+.desktop-content {
   flex: 1;
   display: flex;
-  padding: 8px 24px 20px 24px;
+  padding: 8px 24px 20px;
   box-sizing: border-box;
   overflow-x: hidden;
 }
 
 @media (max-width: 900px) {
-  .app-wrapper {
+  .desktop-shell {
     flex-direction: column;
   }
 
-  .content-area {
-    padding: 8px 12px 16px 12px;
+  .desktop-content {
+    padding: 8px 12px 16px;
   }
 }
 </style>

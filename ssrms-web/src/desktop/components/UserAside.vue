@@ -12,69 +12,23 @@
 
     <nav class="menu">
       <button
+          v-for="item in navItems"
+          :key="item.page"
           type="button"
           class="menu-item"
-          :class="{ active: currentPage === 'home' }"
-          @click="emitChange('home')"
+          :class="{ active: currentPage === item.page }"
+          @click="emitChange(item.page)"
       >
-        <span class="menu-icon">🏠</span>
-        <span>首页</span>
-      </button>
-
-      <button
-          type="button"
-          class="menu-item"
-          :class="{ active: currentPage === 'user-reserve' }"
-          @click="emitChange('user-reserve')"
-      >
-        <span class="menu-icon">🗓</span>
-        <span>我要预约</span>
-      </button>
-
-      <button
-          type="button"
-          class="menu-item"
-          :class="{ active: currentPage === 'user-reservations' }"
-          @click="emitChange('user-reservations')"
-      >
-        <span class="menu-icon">📋</span>
-        <span>我的预约</span>
-      </button>
-
-      <button
-          type="button"
-          class="menu-item"
-          :class="{ active: currentPage === 'user-violations' }"
-          @click="emitChange('user-violations')"
-      >
-        <span class="menu-icon">⚠</span>
-        <span>违规记录</span>
-      </button>
-
-      <button
-          type="button"
-          class="menu-item"
-          :class="{ active: currentPage === 'user-feedback' }"
-          @click="emitChange('user-feedback')"
-      >
-        <span class="menu-icon">💬</span>
-        <span>评价与投诉</span>
-      </button>
-
-      <button
-          type="button"
-          class="menu-item"
-          :class="{ active: currentPage === 'user-profile' }"
-          @click="emitChange('user-profile')"
-      >
-        <span class="menu-icon">👤</span>
-        <span>个人中心</span>
+        <span class="menu-icon">{{ item.icon }}</span>
+        <span>{{ item.label }}</span>
       </button>
     </nav>
   </aside>
 </template>
 
 <script>
+import { userDesktopNavItems } from '../config/userNavigation'
+
 export default {
   name: 'AppAside',
   props: {
@@ -84,6 +38,11 @@ export default {
     }
   },
   emits: ['change-page'],
+  computed: {
+    navItems () {
+      return userDesktopNavItems
+    }
+  },
   methods: {
     emitChange (page) {
       this.$emit('change-page', page)
@@ -150,26 +109,25 @@ export default {
   border-radius: 10px;
   padding: 10px 12px;
   display: flex;
-  align-items: center;      /* 垂直居中图标和文字 */
+  align-items: center;
   gap: 10px;
   font-size: 14px;
   color: #4b5563;
   cursor: pointer;
   transition: background-color 0.15s ease, color 0.15s ease, transform 0.1s ease;
   text-align: left;
-  height: 44px;            /* 固定整行高度，可选 */
-  line-height: 1;          /* 避免行高把图标顶歪 */
+  height: 44px;
+  line-height: 1;
 }
 
-/* 关键：给图标一个固定宽度的小格子 */
 .menu-item .menu-icon {
-  width: 20px;             /* 所有图标占同样宽度 */
+  width: 20px;
   height: 20px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   font-size: 16px;
-  flex-shrink: 0;          /* 不要被压缩 */
+  flex-shrink: 0;
 }
 
 .menu-item.active {

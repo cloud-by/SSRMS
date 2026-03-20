@@ -12,6 +12,8 @@
 </template>
 
 <script>
+import { adminDesktopPageTitleMap } from '../config/adminNavigation'
+
 export default {
   name: 'AdminHeader',
   props: {
@@ -23,15 +25,7 @@ export default {
   emits: ['logout'],
   computed: {
     pageTitle () {
-      const map = {
-        'admin-home': '后台首页',
-        'admin-reservations': '预约管理',
-        'admin-users': '用户管理',
-        'admin-seats': '座位管理',
-        'admin-complaints': '投诉处理',
-        'admin-logs': '日志统计'
-      }
-      return map[this.currentPage] || '管理员后台'
+      return adminDesktopPageTitleMap[this.currentPage] || '管理员后台'
     }
   },
   methods: {

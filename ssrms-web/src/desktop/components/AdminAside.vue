@@ -12,43 +12,15 @@
 
     <nav class="menu">
       <button
+          v-for="item in navItems"
+          :key="item.page"
           type="button"
           class="menu-item"
-          :class="{ active: currentPage === 'admin-home' }"
-          @click="emitChange('admin-home')"
+          :class="{ active: currentPage === item.page }"
+          @click="emitChange(item.page)"
       >
-        <span class="menu-icon">📊</span>
-        <span>后台首页</span>
-      </button>
-
-      <button
-          type="button"
-          class="menu-item"
-          :class="{ active: currentPage === 'admin-reservations' }"
-          @click="emitChange('admin-reservations')"
-      >
-        <span class="menu-icon">📅</span>
-        <span>预约管理</span>
-      </button>
-
-      <button
-          type="button"
-          class="menu-item"
-          :class="{ active: currentPage === 'admin-users' }"
-          @click="emitChange('admin-users')"
-      >
-        <span class="menu-icon">👥</span>
-        <span>用户管理</span>
-      </button>
-
-      <button
-          type="button"
-          class="menu-item"
-          :class="{ active: currentPage === 'admin-complaints' }"
-          @click="emitChange('admin-complaints')"
-      >
-        <span class="menu-icon">📢</span>
-        <span>投诉处理</span>
+        <span class="menu-icon">{{ item.icon }}</span>
+        <span>{{ item.label }}</span>
       </button>
 
     </nav>
@@ -56,6 +28,8 @@
 </template>
 
 <script>
+import { adminDesktopNavItems } from '../config/adminNavigation'
+
 export default {
   name: 'AdminAside',
   props: {
@@ -65,6 +39,11 @@ export default {
     }
   },
   emits: ['change-page'],
+  computed: {
+    navItems () {
+      return adminDesktopNavItems
+    }
+  },
   methods: {
     emitChange (page) {
       this.$emit('change-page', page)
@@ -146,7 +125,13 @@ export default {
 }
 
 .menu-item .menu-icon {
+  width: 20px;
+  height: 20px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   font-size: 16px;
+  flex-shrink: 0;
 }
 
 .menu-item.active {

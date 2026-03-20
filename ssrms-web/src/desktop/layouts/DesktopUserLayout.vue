@@ -1,23 +1,25 @@
 <template>
-  <div class="app-wrapper">
-    <!-- 左侧导航 -->
+  <div class="desktop-shell">
     <AppAside
         :current-page="currentPage"
         @change-page="changePage"
     />
 
-    <!-- 右侧区域：标题栏 + 主内容 -->
-    <div class="main-area">
+    <div class="desktop-main">
       <AppHeader
           :current-page="currentPage"
           @logout="handleLogout"
       />
-      <div class="content-area">
-        <AppHome
-            :current-page="currentPage"
-            @change-page="changePage"
-        />
-      </div>
+
+      <main class="desktop-content">
+        <router-view v-slot="{ Component, route }">
+          <component
+              :is="Component"
+              :current-page="route.meta.pageKey || currentPage"
+              @change-page="changePage"
+          />
+        </router-view>
+      </main>
     </div>
   </div>
 </template>
@@ -26,23 +28,25 @@
 import { ElMessageBox, ElMessage } from 'element-plus'
 import UserHeader from '../components/UserHeader.vue'
 import UserAside from '../components/UserAside.vue'
-import UserHome from '../view/user/UserDesktopHome.vue'
+import { userDesktopNavItems } from '../config/userNavigation'
 
 export default {
-  name: 'MainIndex',
+  name: 'DesktopUserLayout',
   components: {
     AppHeader: UserHeader,
-    AppAside: UserAside,
-    AppHome: UserHome
+    AppAside: UserAside
   },
-  data () {
-    return {
-      currentPage: 'home'
+  computed: {
+    currentPage () {
+      return this.$route.meta.pageKey || 'home'
     }
   },
   methods: {
     changePage (page) {
-      this.currentPage = page
+      const matchedItem = userDesktopNavItems.find(item => item.page === page)
+      if (matchedItem && matchedItem.path !== this.$route.path) {
+        this.$router.push(matchedItem.path)
+      }
     },
 
     async handleLogout () {
@@ -57,20 +61,17 @@ export default {
             }
         )
 
-        // 1) 清掉登录信息（路由守卫用 ssrmsUser 的话，这个必须删）
         localStorage.removeItem('ssrmsUser')
-        // 可选：如果你存过 token，也一起删
         localStorage.removeItem('ssrmsToken')
         localStorage.removeItem('token')
         sessionStorage.removeItem('ssrmsUser')
         sessionStorage.removeItem('ssrmsToken')
         sessionStorage.removeItem('token')
 
-        // 2) 跳回登录页（replace 防止后退回到 /user）
         ElMessage.success('已退出登录')
         this.$router.replace('/login')
       } catch (e) {
-        // 用户点了“取消”就啥也不做
+        // 用户取消退出时不做处理
       }
     }
   }
@@ -78,35 +79,32 @@ export default {
 </script>
 
 <style scoped>
-/* 整体：左侧导航 + 右侧主区域 */
-.app-wrapper {
+.desktop-shell {
   min-height: 100vh;
   display: flex;
   background-color: #f5f7fb;
 }
 
-/* 右侧主区域：上标题栏 + 下内容 */
-.main-area {
+.desktop-main {
   flex: 1;
   display: flex;
   flex-direction: column;
 }
 
-/* 右侧主内容区域，留一点内边距，让卡片更贴近底部 */
-.content-area {
+.desktop-content {
   flex: 1;
   display: flex;
-  padding: 8px 24px 20px 24px;
+  padding: 8px 24px 20px;
   box-sizing: border-box;
 }
 
 @media (max-width: 900px) {
-  .app-wrapper {
+  .desktop-shell {
     flex-direction: column;
   }
 
-  .content-area {
-    padding: 8px 12px 16px 12px;
+  .desktop-content {
+    padding: 8px 12px 16px;
   }
 }
 </style>

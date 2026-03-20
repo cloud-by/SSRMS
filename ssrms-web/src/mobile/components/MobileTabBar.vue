@@ -36,22 +36,29 @@ export default {
 
 <style scoped>
 .mobile-tabbar {
-  position: sticky;
+  position: fixed;
+  left: 0;
+  right: 0;
   bottom: 0;
   z-index: 20;
   display: grid;
   grid-template-columns: repeat(5, 1fr);
   gap: 4px;
-  padding: 8px 8px calc(8px + env(safe-area-inset-bottom));
+  width: min(100%, 560px);
+  margin: 0 auto;
+  padding: 10px 10px calc(10px + env(safe-area-inset-bottom));
+  border-radius: 22px 22px 0 0;
+  box-shadow: 0 -12px 32px rgba(27, 39, 94, 0.08);
   border-top: 1px solid #e8edf5;
-  background: rgba(255, 255, 255, 0.96);
+  background: rgba(255, 255, 255, 0.98);
   backdrop-filter: blur(16px);
 }
 
 .tab-item {
   border: none;
   background: transparent;
-  padding: 6px 4px;
+  padding: 8px 4px;
+  min-height: 58px;
   border-radius: 12px;
   color: #70809a;
   display: flex;

@@ -33,6 +33,7 @@
         <div class="mobile-field"><label>备注</label><textarea v-model="form.profileRemark"></textarea></div>
         <div class="mobile-actions">
           <button type="button" class="mobile-action-btn" @click="saveProfile">保存资料</button>
+          <button type="button" class="mobile-outline-btn" @click="$router.push('/m/user/notices')">查看公告</button>
           <button type="button" class="mobile-outline-btn" @click="logout">退出登录</button>
         </div>
       </div>

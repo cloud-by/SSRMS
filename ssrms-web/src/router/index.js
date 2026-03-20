@@ -10,6 +10,7 @@ import UserMobileHome from '@/mobile/views/user/UserMobileHome.vue'
 import UserMobileReserve from '@/mobile/views/user/UserMobileReserve.vue'
 import UserMobileOrders from '@/mobile/views/user/UserMobileOrders.vue'
 import UserMobileNotices from '@/mobile/views/user/UserMobileNotices.vue'
+import UserMobileFeedback from '@/mobile/views/user/UserMobileFeedback.vue'
 import UserMobileMe from '@/mobile/views/user/UserMobileMe.vue'
 import AdminMobileHome from '@/mobile/views/admin/AdminMobileHome.vue'
 import AdminMobileReservations from '@/mobile/views/admin/AdminMobileReservations.vue'
@@ -22,6 +23,7 @@ const routes = [
     { path: '/', redirect: '/login' },
     { path: '/login', name: 'Login', component: DesktopPortal },
     { path: '/m', name: 'MobilePortal', component: MobilePortal },
+    { path: '/m/login', name: 'MobileLogin', component: DesktopPortal },
     {
         path: '/user',
         component: DesktopUserLayout,
@@ -63,6 +65,7 @@ const routes = [
             { path: 'home', name: 'MobileUserHome', component: UserMobileHome, meta: { requiresAuth: true, role: 'user', mobile: true } },
             { path: 'reserve', name: 'MobileUserReserve', component: UserMobileReserve, meta: { requiresAuth: true, role: 'user', mobile: true } },
             { path: 'orders', name: 'MobileUserOrders', component: UserMobileOrders, meta: { requiresAuth: true, role: 'user', mobile: true } },
+            { path: 'feedback', name: 'MobileUserFeedback', component: UserMobileFeedback, meta: { requiresAuth: true, role: 'user', mobile: true } },
             { path: 'notices', name: 'MobileUserNotices', component: UserMobileNotices, meta: { requiresAuth: true, role: 'user', mobile: true } },
             { path: 'me', name: 'MobileUserMe', component: UserMobileMe, meta: { requiresAuth: true, role: 'user', mobile: true } }
         ]

@@ -33,7 +33,7 @@ export default {
 }
 
 .mobile-main {
-  min-height: calc(100vh - 76px);
-  padding-bottom: 16px;
+  min-height: 100vh;
+  padding-bottom: calc(104px + env(safe-area-inset-bottom));
 }
 </style>

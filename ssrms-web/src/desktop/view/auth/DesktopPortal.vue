@@ -19,6 +19,12 @@
             <button type="button" class="mode-btn" :class="{ active: !isLogin }" @click="switchMode('register')">注册</button>
           </div>
 
+          <div v-if="isMobileAuth" class="mobile-auth-switch">
+            <button type="button" class="mobile-role-chip" :class="{ active: loginForm.role === 'student' }" @click="setLoginRole('student')">用户登录</button>
+            <button type="button" class="mobile-role-chip" :class="{ active: loginForm.role === 'admin' }" @click="setLoginRole('admin')">管理员登录</button>
+            <button type="button" class="mobile-role-chip mode" :class="{ active: !isLogin }" @click="switchMode(isLogin ? 'register' : 'login')">{{ isLogin ? '去注册' : '去登录' }}</button>
+          </div>
+
           <!-- 登录 -->
           <form v-if="isLogin" class="auth-form" @submit.prevent="handleLogin">
             <div class="form-group">
@@ -32,7 +38,7 @@
             </div>
 
             <!-- 登录身份选择：只在登录时出现 -->
-            <div class="form-group form-inline">
+            <div v-if="!isMobileAuth" class="form-group form-inline">
               <label class="form-label-inline">登录身份</label>
 
               <label class="radio-label">
@@ -59,6 +65,10 @@
             <div class="bottom-tip">
               还没有账号？
               <button type="button" class="link-btn" @click="switchMode('register')">立即注册</button>
+            </div>
+
+            <div v-if="isMobileAuth" class="mobile-auth-extra-actions">
+              <button type="button" class="secondary-btn" @click="goMobileEntry">返回移动入口</button>
             </div>
           </form>
 
@@ -126,12 +136,16 @@
               已有账号？
               <button type="button" class="link-btn" @click="switchMode('login')">直接登录</button>
             </div>
+
+            <div v-if="isMobileAuth" class="mobile-auth-extra-actions">
+              <button type="button" class="secondary-btn" @click="goMobileEntry">返回移动入口</button>
+            </div>
           </form>
         </div>
       </div>
 
       <!-- 右侧文案 -->
-      <div class="auth-right">
+      <div v-if="!isMobileAuth" class="auth-right">
         <div class="slogan-block">
           <h2 class="slogan-title">预约自习室的最佳通用解决方案</h2>
           <p class="slogan-desc">统一的自习室预约平台，让学生轻松选座，管理员高效管理场地和预约。</p>
@@ -229,6 +243,20 @@ export default {
   computed: {
     isLogin () {
       return this.mode === 'login'
+    },
+    isMobileAuth () {
+      return this.$route?.query?.mobile === '1' || this.$route?.path === '/m/login'
+    }
+  },
+  mounted () {
+    this.applyRoutePreset()
+  },
+  watch: {
+    '$route.query': {
+      handler () {
+        this.applyRoutePreset()
+      },
+      deep: true
     }
   },
   methods: {
@@ -249,6 +277,21 @@ export default {
 
     handleForgot () {
       this.toast('info', '请联系管理员重置密码')
+    },
+
+    applyRoutePreset () {
+      const query = this.$route?.query || {}
+      const mode = query.mode === 'register' ? 'register' : 'login'
+      const role = query.role === 'admin' ? 'admin' : 'student'
+      this.mode = mode
+      this.loginForm.role = role
+    },
+    setLoginRole (role) {
+      this.loginForm.role = role
+      if (role === 'admin') this.mode = 'login'
+    },
+    goMobileEntry () {
+      this.$router.push('/m')
     },
 
     handleShowAgreement () { this.showAgreement = true },
@@ -668,6 +711,70 @@ export default {
 }
 
 /* 窄屏适配 */
+.mobile-auth-switch {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  margin-bottom: 16px;
+}
+.mobile-role-chip {
+  border: 1px solid #dce6fb;
+  background: #f6f8ff;
+  color: #5c6d86;
+  padding: 10px 12px;
+  border-radius: 14px;
+  font-size: 13px;
+  font-weight: 700;
+}
+.mobile-role-chip.active {
+  background: linear-gradient(135deg, #2f6bff, #4f88ff);
+  color: #fff;
+  border-color: transparent;
+  box-shadow: 0 12px 24px rgba(47, 107, 255, 0.2);
+}
+.mobile-role-chip.mode { background:#eef3ff; color:#2f6bff; }
+.mobile-role-chip.mode.active { background:#1d4ed8; }
+.secondary-btn {
+  width: 100%;
+  min-height: 44px;
+  border: none;
+  border-radius: 999px;
+  background: #edf3ff;
+  color: #2f6bff;
+  font-size: 14px;
+  font-weight: 700;
+}
+.mobile-auth-extra-actions { margin-top: 6px; }
+.login-page-mobile {
+  padding: 18px 14px 32px;
+  background:
+      radial-gradient(circle at top left, rgba(79, 136, 255, 0.18), transparent 34%),
+      radial-gradient(circle at bottom right, rgba(87, 180, 255, 0.16), transparent 32%),
+      linear-gradient(180deg, #edf4ff 0%, #f7f8fc 52%, #eef2ff 100%);
+}
+.auth-wrapper-mobile {
+  width: min(100%, 460px);
+  min-height: auto;
+  max-height: none;
+  border-radius: 30px;
+  background: rgba(255,255,255,0.82);
+  backdrop-filter: blur(20px);
+  box-shadow: 0 24px 60px rgba(33, 52, 96, 0.14);
+}
+.auth-left-mobile {
+  width: 100%;
+  padding: 22px 20px 26px;
+  background: transparent;
+}
+.auth-logo-row-mobile { margin-bottom: 22px; }
+.auth-card-mobile { max-width: 100%; }
+.auth-wrapper-mobile .logo-icon { box-shadow: 0 14px 28px rgba(37, 99, 235, 0.28); }
+.auth-wrapper-mobile .logo-title { font-size: 20px; }
+.auth-wrapper-mobile .logo-subtitle { font-size: 13px; }
+.auth-wrapper-mobile .form-input { border-radius: 14px; min-height: 46px; }
+.auth-wrapper-mobile .primary-btn { height: 48px; }
+.auth-wrapper-mobile .bottom-tip { text-align: center; }
+
 @media (max-width: 960px) {
   .auth-wrapper { flex-direction: column; height: auto; max-height: none; width: 100%; border-radius: 0; }
   .auth-left { padding: 24px 20px 18px; overflow-y: visible; }

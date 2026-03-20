@@ -31,8 +31,8 @@
         <div class="mobile-actions">
           <button type="button" class="mobile-action-btn" @click="$router.push('/m/user/reserve')">立即找座</button>
           <button type="button" class="mobile-outline-btn" @click="$router.push('/m/user/orders')">我的预约</button>
+          <button type="button" class="mobile-outline-btn" @click="$router.push('/m/user/feedback')">评价投诉</button>
           <button type="button" class="mobile-outline-btn" @click="$router.push('/m/user/notices')">公告中心</button>
-          <button type="button" class="mobile-outline-btn" @click="$router.push('/m/user/me')">个人资料</button>
         </div>
       </div>
     </section>

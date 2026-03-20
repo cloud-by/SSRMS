@@ -18,8 +18,8 @@ export default {
       tabItems: [
         { label: '首页', icon: '🏠', path: '/m/user/home' },
         { label: '预约', icon: '🪑', path: '/m/user/reserve' },
-        { label: '预约单', icon: '🧾', path: '/m/user/orders' },
-        { label: '公告', icon: '📢', path: '/m/user/notices' },
+        { label: '订单', icon: '🧾', path: '/m/user/orders' },
+        { label: '反馈', icon: '💬', path: '/m/user/feedback' },
         { label: '我的', icon: '👤', path: '/m/user/me' }
       ]
     }
@@ -34,7 +34,7 @@ export default {
 }
 
 .mobile-main {
-  min-height: calc(100vh - 76px);
-  padding-bottom: 16px;
+  min-height: 100vh;
+  padding-bottom: calc(104px + env(safe-area-inset-bottom));
 }
 </style>

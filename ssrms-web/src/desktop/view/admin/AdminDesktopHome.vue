@@ -193,11 +193,14 @@
         </div>
 
         <el-table
+            ref="todoTableRef"
             :data="todos"
             size="small"
             class="todo-table"
             border
             stripe
+            table-layout="fixed"
+            style="width: 100%"
         >
           <el-table-column prop="type" label="类型" min-width="110">
             <template #default="scope">
@@ -225,7 +228,7 @@
             </template>
           </el-table-column>
 
-          <el-table-column label="操作" min-width="200" fixed="right">
+          <el-table-column label="操作" min-width="200">
             <template #default="scope">
               <div class="todo-actions">
                 <el-button size="small" type="primary" link @click="handleTodoGo(scope.row)">
@@ -577,10 +580,13 @@
       </div>
 
       <el-table
+          ref="reservationTableRef"
           :data="reservations"
           border
           stripe
           size="small"
+          table-layout="fixed"
+          style="width: 100%"
           @selection-change="handleSelectionChange"
           class="reservation-table"
       >
@@ -615,7 +621,7 @@
           </template>
         </el-table-column>
 
-        <el-table-column label="操作" fixed="right" min-width="200">
+        <el-table-column label="操作" min-width="200">
           <template #default="scope">
             <div class="action-buttons">
               <!-- 1) 已预约：只能取消 + 详情 -->
@@ -796,11 +802,14 @@
       </div>
 
       <el-table
+          ref="userTableRef"
           v-loading="userLoading"
           :data="users"
           border
           stripe
           size="small"
+          table-layout="fixed"
+          style="width: 100%"
           @selection-change="handleUserSelectionChange"
           class="user-table"
       >
@@ -852,7 +861,7 @@
           </template>
         </el-table-column>
 
-        <el-table-column label="操作" fixed="right" min-width="230">
+        <el-table-column label="操作" min-width="230">
           <template #default="scope">
             <div class="action-buttons">
               <template v-if="Number(scope.row.roleId) !== 0">
@@ -909,6 +918,7 @@
           size="520px"
           append-to-body
           class="user-detail-drawer"
+          @opened="handleUserDetailDrawerOpened"
       >
         <div class="user-detail" v-loading="userDetailLoading">
           <div class="ud-head">
@@ -962,9 +972,12 @@
           <div class="ud-section">
             <div class="ud-section-title">最近违约记录</div>
             <el-table
+                ref="userViolationTableRef"
                 :data="userDetail.recentViolations || []"
                 size="small"
                 border
+                table-layout="fixed"
+                style="width: 100%"
                 class="ud-table"
                 empty-text="暂无违约记录"
             >
@@ -1101,11 +1114,14 @@
         </div>
 
         <el-table
+            ref="fbAdminTableRef"
             :data="fbAdminList"
             v-loading="fbAdminLoading"
             border
             stripe
             size="small"
+            table-layout="fixed"
+            style="width: 100%"
             class="fb-admin-table"
         >
           <el-table-column prop="id" label="#" width="72" />
@@ -1159,7 +1175,7 @@
             <template #default="scope">{{ formatYmdhm(scope.row.updateTime) }}</template>
           </el-table-column>
 
-          <el-table-column label="操作" width="150" fixed="right">
+          <el-table-column label="操作" width="150">
             <template #default="scope">
               <div class="fb-row-actions">
                 <el-button size="small" type="primary" plain @click="openFbAdminDetail(scope.row)">处理</el-button>
@@ -1185,7 +1201,9 @@
           v-model="fbAdminDrawerVisible"
           size="520px"
           :with-header="false"
+          append-to-body
           class="fb-admin-drawer"
+          @opened="handleFbAdminDrawerOpened"
       >
         <div v-if="fbAdminDetail" class="fb-drawer">
           <div class="fb-drawer-head">
@@ -1641,21 +1659,27 @@ export default {
       if (val !== 'admin-home') this.stopDashboardTimer()
       else if (this.autoRefresh) this.startDashboardTimer()
 
-      if (val === 'admin-home') this.loadAdminNoticeHome()
-      if (val === 'admin-home') this.loadAdminDashboardHome()
-      if (val === 'admin-home') this.loadAdminHomeTodos()
+      if (val === 'admin-home') {
+        this.loadAdminNoticeHome()
+        this.loadAdminDashboardHome()
+        this.loadAdminHomeTodos()
+        this.scheduleTableLayout('todoTableRef')
+      }
       if (val === 'admin-reservations') {
         this.loadReservationRoomOptions()
         this.loadAdminReservations(true)
+        this.scheduleTableLayout('reservationTableRef')
       }
 
       if (val === 'admin-users') {
         this.loadAdminUsers(true)
+        this.scheduleTableLayout('userTableRef')
       }
 
       if (val === 'admin-complaints') {
         this.loadAdminFeedback(true)
         this.loadAdminFeedbackStats()
+        this.scheduleTableLayout('fbAdminTableRef')
       }
     },
     autoRefresh (val) {
@@ -1685,6 +1709,38 @@ export default {
   methods: {
     emitChange (page) {
       this.$emit('change-page', page)
+    },
+    scheduleTableLayout (refNames) {
+      const names = Array.isArray(refNames) ? refNames : [refNames]
+      this.$nextTick(() => {
+        const run = () => {
+          names.forEach((name) => {
+            const ref = this.$refs[name]
+            const target = Array.isArray(ref) ? ref[0] : ref
+            if (target && typeof target.doLayout === 'function') {
+              try {
+                target.doLayout()
+              } catch (e) {
+                // ignore layout flush errors
+              }
+            }
+          })
+        }
+        if (typeof requestAnimationFrame === 'function') {
+          requestAnimationFrame(() => {
+            run()
+            setTimeout(run, 16)
+          })
+        } else {
+          setTimeout(run, 0)
+        }
+      })
+    },
+    handleUserDetailDrawerOpened () {
+      this.scheduleTableLayout('userViolationTableRef')
+    },
+    handleFbAdminDrawerOpened () {
+      this.scheduleTableLayout('fbAdminTableRef')
     },
 
     /* ---------- dashboard timers ---------- */
@@ -2099,6 +2155,7 @@ export default {
         this.loadAdminReservationStatsForHome()
       ])
       this.rebuildTodos()
+      if (this.currentPage === 'admin-home') this.scheduleTableLayout('todoTableRef')
     },
 
     async loadAdminReservationStatsForHome () {
@@ -2218,6 +2275,7 @@ export default {
         ElMessage.error('预约数据加载失败，请检查后端服务或网络连接')
       } finally {
         this.reservationLoading = false
+        if (this.currentPage === 'admin-reservations') this.scheduleTableLayout('reservationTableRef')
       }
     },
 
@@ -2470,6 +2528,7 @@ export default {
         ElMessage.error('用户数据加载失败，请检查后端服务或网络连接')
       } finally {
         this.userLoading = false
+        if (this.currentPage === 'admin-users') this.scheduleTableLayout('userTableRef')
       }
     },
 
@@ -2660,6 +2719,7 @@ export default {
         ElMessage.error('获取详情失败，请检查后端服务或网络连接')
       } finally {
         this.userDetailLoading = false
+        this.scheduleTableLayout('userViolationTableRef')
       }
     },
     async handleBatchLock () {
@@ -2880,6 +2940,7 @@ export default {
         this.fbAdminTotal = 0
       } finally {
         this.fbAdminLoading = false
+        if (this.currentPage === 'admin-complaints') this.scheduleTableLayout('fbAdminTableRef')
       }
     },
     openFbAdminDetail (row) {
@@ -2891,6 +2952,7 @@ export default {
         cancelReservation: false
       }
       this.fbAdminDrawerVisible = true
+      this.scheduleTableLayout('fbAdminTableRef')
     },
     async quickResolveFb (row) {
       if (!row || !row.id) return
@@ -3017,6 +3079,7 @@ export default {
   flex: 1;
   display: flex;
   flex-direction: column;
+  min-width: 0;
 }
 
 /* 通用卡片 */
@@ -3209,6 +3272,62 @@ export default {
 }
 
 .todo-table { margin-top: 4px; }
+.dashboard-page,
+.middle-row,
+.welcome-left,
+.welcome-right,
+.card-header-row,
+.card-header,
+.filter-bar,
+.filter-actions,
+.reservation-header-right,
+.user-header-right,
+.reservation-toolbar,
+.toolbar-left,
+.toolbar-right,
+.complaints-page,
+.complaints-head-left,
+.complaints-head-right,
+.complaints-toolbar,
+.tool-left,
+.tool-right,
+.fb-drawer,
+.user-detail {
+  min-width: 0;
+}
+
+.todo-table,
+.reservation-table,
+.user-table,
+.fb-admin-table,
+.ud-table {
+  width: 100%;
+}
+
+.todo-table :deep(.el-scrollbar),
+.reservation-table :deep(.el-scrollbar),
+.user-table :deep(.el-scrollbar),
+.fb-admin-table :deep(.el-scrollbar),
+.ud-table :deep(.el-scrollbar) {
+  width: auto;
+}
+
+.todo-table :deep(.el-table__body-wrapper),
+.reservation-table :deep(.el-table__body-wrapper),
+.user-table :deep(.el-table__body-wrapper),
+.fb-admin-table :deep(.el-table__body-wrapper),
+.ud-table :deep(.el-table__body-wrapper) {
+  width: 100%;
+}
+
+.todo-table :deep(.cell),
+.reservation-table :deep(.cell),
+.user-table :deep(.cell),
+.fb-admin-table :deep(.cell),
+.ud-table :deep(.cell) {
+  word-break: break-word;
+}
+
 
 .todo-actions {
   display: flex;
@@ -3242,11 +3361,37 @@ export default {
 .quick-tip { margin-top: 8px; font-size: 12px; color: #6b7280; }
 
 /* ============ Reservation/User shared styles ============ */
+.reservation-card,
+.user-card,
+.complaints-head,
+.complaints-body {
+  border: 1px solid #e8eefc;
+  border-radius: 24px;
+  box-shadow: 0 14px 36px rgba(15, 23, 42, 0.06);
+  min-width: 0;
+}
+
+.reservation-card,
+.user-card {
+  padding: 28px 28px 22px;
+}
+
 .card-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 16px;
+  margin-bottom: 20px;
+  padding-bottom: 18px;
+  border-bottom: 1px solid #eef2ff;
+}
+
+.card-header .page-title {
+  margin-bottom: 8px;
+}
+
+.card-header .page-subtitle {
+  color: #64748b;
+  line-height: 1.7;
 }
 
 .reservation-header-right,
@@ -3268,7 +3413,12 @@ export default {
   display: flex;
   flex-wrap: wrap;
   gap: 12px;
-  margin-bottom: 12px;
+  margin-bottom: 18px;
+  padding: 18px;
+  border-radius: 20px;
+  background: linear-gradient(135deg, #f8fbff, #f8faff);
+  border: 1px solid #e7eefb;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.65);
 }
 
 .filter-item { min-width: 180px; }
@@ -3284,46 +3434,85 @@ export default {
 .input-prefix-icon { font-size: 14px; }
 
 .reservation-stats {
-  display: flex;
-  flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 12px;
-  margin: 8px 0 12px;
+  margin: 10px 0 18px;
 }
 
 .stat-card {
-  flex: 1;
   min-width: 140px;
-  border-radius: 12px;
-  background-color: #f9fafb;
-  padding: 10px 12px;
+  border-radius: 18px;
+  background: linear-gradient(135deg, #ffffff, #f8fbff);
+  border: 1px solid #e5ecfa;
+  padding: 16px 16px 14px;
+  box-shadow: 0 10px 24px rgba(148, 163, 184, 0.10);
 }
 
-.stat-label { font-size: 12px; color: #6b7280; }
-.stat-value { margin-top: 4px; font-size: 18px; font-weight: 600; color: #111827; }
+.stat-label { font-size: 13px; color: #64748b; }
+.stat-value { margin-top: 8px; font-size: 30px; font-weight: 700; color: #0f172a; line-height: 1; }
 
 .reservation-toolbar {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin: 4px 0 12px;
+  margin: 4px 0 16px;
   flex-wrap: wrap;
-  gap: 8px;
+  gap: 12px;
+  padding: 14px 18px;
+  border-radius: 18px;
+  background: #ffffff;
+  border: 1px solid #edf2fb;
 }
 
 .toolbar-left {
   display: flex;
   align-items: center;
   gap: 8px;
+  flex-wrap: wrap;
 }
 
-.toolbar-right { font-size: 12px; color: #6b7280; }
-.toolbar-tip { font-size: 12px; color: #4b5563; }
+.toolbar-right { font-size: 12px; color: #64748b; }
+.toolbar-tip {
+  display: inline-flex;
+  align-items: center;
+  min-height: 32px;
+  padding: 0 12px;
+  border-radius: 999px;
+  background: #f8fafc;
+  color: #475569;
+  border: 1px solid #e2e8f0;
+  font-size: 12px;
+}
 
 .reservation-table, .user-table { width: 100%; }
+.reservation-table,
+.user-table,
+.fb-admin-table {
+  border-radius: 20px;
+  overflow: hidden;
+  border: 1px solid #e9eff9;
+  box-shadow: 0 10px 28px rgba(148, 163, 184, 0.10);
+}
+
+.reservation-table :deep(.el-table__header-wrapper th),
+.user-table :deep(.el-table__header-wrapper th),
+.fb-admin-table :deep(.el-table__header-wrapper th) {
+  background: #f8fbff !important;
+  color: #475569;
+  font-weight: 700;
+}
+
+.reservation-table :deep(.el-table__row td),
+.user-table :deep(.el-table__row td),
+.fb-admin-table :deep(.el-table__row td) {
+  padding-top: 14px;
+  padding-bottom: 14px;
+}
 
 .student-cell { display: flex; flex-direction: column; }
-.student-name { font-size: 13px; color: #111827; }
-.student-no { font-size: 12px; color: #6b7280; }
+.student-name { font-size: 14px; color: #111827; font-weight: 700; }
+.student-no { font-size: 12px; color: #6b7280; margin-top: 4px; }
 
 .remark-text { font-size: 12px; color: #4b5563; }
 
@@ -4024,18 +4213,46 @@ export default {
 
 /* ====== Admin Complaints ====== */
 .complaints-page{display:flex;flex-direction:column;gap:14px;}
-.complaints-head{display:flex;align-items:flex-start;justify-content:space-between;gap:14px;}
+.complaints-head{
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:14px;
+  padding:24px 28px;
+  background: linear-gradient(135deg, #ffffff, #f8fbff);
+}
 .complaints-head-left .page-title{margin:0;}
-.complaints-head-left .page-subtitle{margin-top:6px;}
+.complaints-head-left .page-subtitle{margin-top:8px;color:#64748b;line-height:1.7;}
 
 .complaints-head-right{display:flex;align-items:center;gap:12px;}
 .fb-stats{display:flex;gap:10px;}
-.fb-stat{min-width:72px;border:1px solid #eef2f7;background:#fff;border-radius:12px;padding:8px 10px;text-align:center;}
-.fb-stat-num{font-size:18px;font-weight:800;color:#111827;line-height:1;}
-.fb-stat-label{font-size:12px;color:#6b7280;margin-top:6px;}
+.fb-stat{
+  min-width:88px;
+  border:1px solid #e6edf9;
+  background:linear-gradient(135deg, #ffffff, #f8fbff);
+  border-radius:18px;
+  padding:12px 14px;
+  text-align:center;
+  box-shadow: 0 10px 24px rgba(148, 163, 184, 0.10);
+}
+.fb-stat-num{font-size:28px;font-weight:800;color:#111827;line-height:1;}
+.fb-stat-label{font-size:12px;color:#6b7280;margin-top:8px;}
 
-.complaints-body{padding-top:14px;}
-.complaints-toolbar{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:12px;}
+.complaints-body{
+  padding:24px 28px 22px;
+  background:#ffffff;
+}
+.complaints-toolbar{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  margin-bottom:16px;
+  padding:16px 18px;
+  border-radius:18px;
+  background:linear-gradient(135deg, #f8fbff, #f8faff);
+  border:1px solid #e7eefb;
+}
 .tool-left{display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
 .tool-right{display:flex;align-items:center;gap:10px;}
 
@@ -4047,7 +4264,7 @@ export default {
 .fb-muted{color:#9ca3af;}
 .fb-row-actions{display:flex;gap:8px;justify-content:flex-end;}
 
-.fb-admin-pagination{margin-top:12px;display:flex;justify-content:flex-end;}
+.fb-admin-pagination{margin-top:16px;display:flex;justify-content:flex-end;}
 
 .fb-admin-drawer :deep(.el-drawer__body){padding:16px;}
 .fb-drawer{display:flex;flex-direction:column;gap:12px;}
@@ -4072,6 +4289,7 @@ export default {
   .complaints-head{flex-direction:column;align-items:stretch;}
   .complaints-head-right{justify-content:space-between;}
   .fb-stats{flex:1;justify-content:space-between;}
+  .reservation-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 
 

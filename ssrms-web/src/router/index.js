@@ -15,6 +15,7 @@ import AdminMobileHome from '@/mobile/views/admin/AdminMobileHome.vue'
 import AdminMobileReservations from '@/mobile/views/admin/AdminMobileReservations.vue'
 import AdminMobileUsers from '@/mobile/views/admin/AdminMobileUsers.vue'
 import AdminMobileNotices from '@/mobile/views/admin/AdminMobileNotices.vue'
+import AdminMobileComplaints from '@/mobile/views/admin/AdminMobileComplaints.vue'
 import AdminMobileMe from '@/mobile/views/admin/AdminMobileMe.vue'
 
 const routes = [
@@ -75,6 +76,7 @@ const routes = [
             { path: 'home', name: 'MobileAdminHome', component: AdminMobileHome, meta: { requiresAuth: true, role: 'admin', mobile: true } },
             { path: 'reservations', name: 'MobileAdminReservations', component: AdminMobileReservations, meta: { requiresAuth: true, role: 'admin', mobile: true } },
             { path: 'users', name: 'MobileAdminUsers', component: AdminMobileUsers, meta: { requiresAuth: true, role: 'admin', mobile: true } },
+            { path: 'complaints', name: 'MobileAdminComplaints', component: AdminMobileComplaints, meta: { requiresAuth: true, role: 'admin', mobile: true } },
             { path: 'notices', name: 'MobileAdminNotices', component: AdminMobileNotices, meta: { requiresAuth: true, role: 'admin', mobile: true } },
             { path: 'me', name: 'MobileAdminMe', component: AdminMobileMe, meta: { requiresAuth: true, role: 'admin', mobile: true } }
         ]

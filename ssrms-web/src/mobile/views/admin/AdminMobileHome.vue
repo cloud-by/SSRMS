@@ -41,7 +41,8 @@
         <div class="mobile-actions">
           <button type="button" class="mobile-action-btn" @click="$router.push('/m/admin/reservations')">处理预约</button>
           <button type="button" class="mobile-outline-btn" @click="$router.push('/m/admin/users')">处理用户</button>
-          <button type="button" class="mobile-outline-btn" @click="$router.push('/m/admin/notices')">公告管理</button>
+          <button type="button" class="mobile-outline-btn" @click="$router.push('/m/admin/complaints')">投诉处理</button>
+          <button type="button" class="mobile-outline-btn" @click="$router.push('/m/admin/notices')">公告查看</button>
         </div>
       </div>
     </section>

@@ -17,9 +17,9 @@ export default {
     return {
       tabItems: [
         { label: '工作台', icon: '📊', path: '/m/admin/home' },
-        { label: '预约处理', icon: '✅', path: '/m/admin/reservations' },
-        { label: '用户处理', icon: '👥', path: '/m/admin/users' },
-        { label: '公告', icon: '📣', path: '/m/admin/notices' },
+        { label: '预约', icon: '✅', path: '/m/admin/reservations' },
+        { label: '用户', icon: '👥', path: '/m/admin/users' },
+        { label: '投诉', icon: '💬', path: '/m/admin/complaints' },
         { label: '我的', icon: '🛠️', path: '/m/admin/me' }
       ]
     }

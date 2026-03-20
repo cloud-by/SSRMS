@@ -582,7 +582,6 @@
       <el-table
           ref="reservationTableRef"
           :data="reservations"
-          border
           stripe
           size="small"
           table-layout="fixed"
@@ -805,7 +804,6 @@
           ref="userTableRef"
           v-loading="userLoading"
           :data="users"
-          border
           stripe
           size="small"
           table-layout="fixed"
@@ -1117,7 +1115,6 @@
             ref="fbAdminTableRef"
             :data="fbAdminList"
             v-loading="fbAdminLoading"
-            border
             stripe
             size="small"
             table-layout="fixed"
@@ -3512,18 +3509,30 @@ export default {
 .reservation-table,
 .user-table,
 .fb-admin-table {
-  border-radius: 12px;
-  overflow: visible;
-  border: none;
-  background: #fff;
-  box-shadow: 0 0 0 1px #dfe7f5;
+  border-radius: 16px;
+  overflow: hidden;
+  border: 1px solid #e6edf8;
+  background: linear-gradient(180deg, #ffffff 0%, #fbfdff 100%);
+  box-shadow: 0 10px 24px rgba(148, 163, 184, 0.08);
+}
+
+.reservation-table :deep(.el-table),
+.user-table :deep(.el-table),
+.fb-admin-table :deep(.el-table) {
+  --el-table-border-color: #e9eff7;
+  --el-table-border: 1px solid #e9eff7;
+  --el-table-header-bg-color: #f7faff;
+  --el-table-row-hover-bg-color: #f8fbff;
+  --el-table-current-row-bg-color: #f5f9ff;
+  --el-table-tr-bg-color: transparent;
+  background: transparent;
 }
 
 .reservation-table :deep(.el-table__inner-wrapper),
 .user-table :deep(.el-table__inner-wrapper),
 .fb-admin-table :deep(.el-table__inner-wrapper),
 .ud-table :deep(.el-table__inner-wrapper) {
-  border-radius: 10px;
+  border-radius: 16px;
   overflow: hidden;
 }
 
@@ -3534,12 +3543,13 @@ export default {
   display: none;
 }
 
-.reservation-table :deep(.el-table__header-wrapper th),
-.user-table :deep(.el-table__header-wrapper th),
-.fb-admin-table :deep(.el-table__header-wrapper th) {
-  background: #f8fbff !important;
-  color: #475569;
+.reservation-table :deep(th.el-table__cell),
+.user-table :deep(th.el-table__cell),
+.fb-admin-table :deep(th.el-table__cell) {
+  background: linear-gradient(180deg, #f8fbff 0%, #f3f7ff 100%) !important;
+  color: #334155;
   font-weight: 700;
+  border-bottom: 1px solid #dbe7f5;
 }
 
 .reservation-table :deep(.el-table__row td),
@@ -3547,6 +3557,25 @@ export default {
 .fb-admin-table :deep(.el-table__row td) {
   padding-top: 14px;
   padding-bottom: 14px;
+  border-bottom: 1px solid #eef3fa;
+}
+
+.reservation-table :deep(.el-table__cell),
+.user-table :deep(.el-table__cell),
+.fb-admin-table :deep(.el-table__cell) {
+  border-right: 1px solid #eef3fa;
+}
+
+.reservation-table :deep(.el-table__cell:last-child),
+.user-table :deep(.el-table__cell:last-child),
+.fb-admin-table :deep(.el-table__cell:last-child) {
+  border-right: none;
+}
+
+.reservation-table :deep(.el-table__row:last-child td),
+.user-table :deep(.el-table__row:last-child td),
+.fb-admin-table :deep(.el-table__row:last-child td) {
+  border-bottom: none;
 }
 
 .reservation-table :deep(.el-table__header-wrapper th:first-child),

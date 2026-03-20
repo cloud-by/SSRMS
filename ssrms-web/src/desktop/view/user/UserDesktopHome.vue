@@ -50,34 +50,68 @@
             </div>
           </div>
 
-          <div class="home-row-two">
-            <div class="home-panel home-overview">
-              <div class="home-panel-header">
-                <div class="home-panel-title">今日自习室概况</div>
+          <div class="home-row">
+            <div class="home-panel home-overview home-availability-card">
+              <div class="home-panel-header home-availability-header">
+                <div>
+                  <div class="home-panel-title">教室余座速查</div>
+                  <div class="home-panel-subtitle">默认已选首个可用教室与时段，可直接跳转到预约页继续选座。</div>
+                </div>
+                <button type="button" class="home-query-btn" @click="goToReserveWithCurrentSelection">
+                  去预约页查询
+                </button>
               </div>
-              <div class="home-panel-body home-overview-body">
-                <div class="home-overview-line">
-                  <div class="home-panel-number">{{ todayOverview.totalSeats }} 个座位</div>
-                  <div class="home-panel-desc">
-                    已预约 {{ todayOverview.reservedCount }} · 正在使用 {{ todayOverview.inUseCount }} · 剩余 {{ todayOverview.remainingCount }}
+              <div class="home-panel-body home-availability-body">
+                <div class="home-filter-grid">
+                  <div class="home-filter-item">
+                    <label>校区</label>
+                    <select class="reserve-select home-filter-select" v-model="selectedCampus" @change="onCampusChange">
+                      <option value="" disabled>选择校区</option>
+                      <option v-for="c in campusOptions" :key="c" :value="c">{{ c }}</option>
+                    </select>
+                  </div>
+                  <div class="home-filter-item">
+                    <label>建筑</label>
+                    <select class="reserve-select home-filter-select" v-model="selectedBuilding" :disabled="!selectedCampus" @change="onBuildingChange">
+                      <option value="" disabled>选择建筑</option>
+                      <option v-for="b in buildingOptions" :key="b" :value="b">{{ b }}</option>
+                    </select>
+                  </div>
+                  <div class="home-filter-item">
+                    <label>教室</label>
+                    <select class="reserve-select home-filter-select" v-model.number="selectedRoomId" :disabled="!selectedBuilding" @change="onRoomChange">
+                      <option :value="null" disabled>选择教室</option>
+                      <option v-for="r in roomOptions" :key="r.id" :value="r.id">{{ r.roomName }}</option>
+                    </select>
+                  </div>
+                  <div class="home-filter-item">
+                    <label>日期</label>
+                    <select class="reserve-select home-filter-select" v-model.number="currentDateIndex" @change="handleHomeDateChange">
+                      <option v-for="d in dateList" :key="d.key" :value="d.key">{{ d.fullLabel }} {{ d.isTomorrow ? '（明天）' : d.weekday }}</option>
+                    </select>
+                  </div>
+                  <div class="home-filter-item home-filter-item-wide">
+                    <label>时间段</label>
+                    <select class="reserve-select home-filter-select" v-model="selectedTimeSlotId" @change="handleTimeSlotChange">
+                      <option value="" disabled>选择时间段</option>
+                      <option v-for="slot in timeSlotOptions" :key="slot.id" :value="slot.id">{{ slot.label }}</option>
+                    </select>
                   </div>
                 </div>
-              </div>
-            </div>
 
-            <div class="month-report">
-              <div class="report-title">本月学习简报</div>
-              <div class="report-row">
-                <span>本月累计预约</span>
-                <span><strong>{{ monthBrief.monthReserveCount }}</strong> 次</span>
-              </div>
-              <div class="report-row">
-                <span>本月累计自习时长</span>
-                <span><strong>{{ monthStudyHours }}</strong> 小时</span>
-              </div>
-              <div class="report-row">
-                <span>最近一次到馆</span>
-                <span>{{ monthBrief.lastVisitTime || '-' }}</span>
+                <div class="home-availability-summary">
+                  <div class="home-availability-main">
+                    <div class="home-panel-number">{{ homeAvailabilityRemaining }} 个剩余座位</div>
+                    <div class="home-panel-desc">{{ homeAvailabilityDescription }}</div>
+                  </div>
+                  <div class="home-availability-meta">
+                    <span>{{ currentRoomFullName || '请选择教室' }}</span>
+                    <span>·</span>
+                    <span>{{ currentDateLabel || '请选择日期' }}</span>
+                    <span>·</span>
+                    <span>{{ selectedTimeText || '请选择时间段' }}</span>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
@@ -480,27 +514,11 @@
             </select>
           </div>
 
-          <div class="reserve-control long">
-            <select class="reserve-select" v-model.number="startHour" @change="handleStartHourChange">
-              <option :value="null" disabled>开始时间</option>
-              <option v-for="h in startHourOptions" :key="h" :value="h">{{ pad2(h) }}:00</option>
+          <div class="reserve-control time-slot-control">
+            <select class="reserve-select" v-model="selectedTimeSlotId" @change="handleTimeSlotChange">
+              <option value="" disabled>选择时间段</option>
+              <option v-for="slot in timeSlotOptions" :key="slot.id" :value="slot.id">{{ slot.label }}</option>
             </select>
-          </div>
-
-          <div class="reserve-control long">
-            <select
-                class="reserve-select"
-                v-model.number="endHour"
-                :disabled="startHour == null"
-                @change="handleEndHourChange"
-            >
-              <option :value="null" disabled>结束时间</option>
-              <option v-for="h in endHourOptions" :key="h" :value="h">{{ pad2(h) }}:00</option>
-            </select>
-          </div>
-
-          <div class="reserve-warning" v-if="rangeHasConflict">
-            所选时间段包含不可预约时段
           </div>
         </div>
 
@@ -1218,9 +1236,16 @@ export default {
       selectedBuilding: '',
       selectedRoomId: null,
 
-      // 开始/结束时间（小时）
-      startHour: null,
-      endHour: null,
+      // 固定预约时间段
+      timeSlotOptions: [
+        { id: '08:00-09:35', startTime: '08:00', endTime: '09:35', label: '08:00 - 09:35' },
+        { id: '10:00-11:35', startTime: '10:00', endTime: '11:35', label: '10:00 - 11:35' },
+        { id: '13:30-15:05', startTime: '13:30', endTime: '15:05', label: '13:30 - 15:05' },
+        { id: '15:30-17:05', startTime: '15:30', endTime: '17:05', label: '15:30 - 17:05' },
+        { id: '18:00-19:35', startTime: '18:00', endTime: '19:35', label: '18:00 - 19:35' },
+        { id: '20:00-21:35', startTime: '20:00', endTime: '21:35', label: '20:00 - 21:35' }
+      ],
+      selectedTimeSlotId: '',
 
       // 座位号（按当前房间动态生成，如 01-01）
       selectedSeatNo: '',
@@ -1235,9 +1260,6 @@ export default {
       visibleStart: 0,
       visibleCount: 7,
       currentDateIndex: 0,
-
-      // 后端返回的“已满时段”（id 列表，例如 [8,9,14]）
-      disabledSlotIds: [],
 
       // 当前登录用户 id
       currentUserId: null,
@@ -1337,19 +1359,6 @@ export default {
       noticeReadIds: [],
       onlyPending: false,
       currentCreditScore: 100,
-
-      todayOverview: {
-        totalSeats: 15600,
-        reservedCount: 0,
-        inUseCount: 0,
-        remainingCount: 15600
-      },
-      monthBrief: {
-        monthReserveCount: 0,
-        studyMinutes: 0,
-        lastVisitTime: null
-      },
-
     }
   },
 
@@ -1388,33 +1397,11 @@ export default {
       return cur ? cur.fullLabel : null
     },
 
-    // 开始时间：08~22；结束时间：09~23（且必须 > startHour）
-    startHourOptions () {
-      const arr = []
-      for (let h = 8; h <= 22; h++) arr.push(h)
-      return arr
-    },
-    endHourOptions () {
-      if (this.startHour == null) return []
-      const arr = []
-      const maxEnd = Math.min(23, this.startHour + 4)   // ✅最多4小时
-      for (let h = this.startHour + 1; h <= maxEnd; h++) arr.push(h)
-      return arr
+    selectedTimeSlot () {
+      return this.timeSlotOptions.find(item => item.id === this.selectedTimeSlotId) || null
     },
     selectedTimeText () {
-      if (this.startHour == null || this.endHour == null) return ''
-      return `${this.pad2(this.startHour)}:00 - ${this.pad2(this.endHour)}:00`
-    },
-    selectedSlotIdsFromRange () {
-      if (this.startHour == null || this.endHour == null) return []
-      const ids = []
-      for (let h = this.startHour; h < this.endHour; h++) ids.push(h)
-      return ids
-    },
-    rangeHasConflict () {
-      if (!this.disabledSlotIds.length) return false
-      const disabled = new Set(this.disabledSlotIds.map(x => Number(x)))
-      return this.selectedSlotIdsFromRange.some(id => disabled.has(Number(id)))
+      return this.selectedTimeSlot ? this.selectedTimeSlot.label : ''
     },
     seatColumns () {
       return this.currentRoomInfo?.building === '图书馆' ? 8 : 6
@@ -1440,8 +1427,22 @@ export default {
       const layoutLabel = this.seatColumns === 8 ? '图书馆安静区布局' : '教学楼舒适布局'
       return `${seats} 座 · ${this.seatColumns} 列排布 · ${layoutLabel}`
     },
+    currentRoomCapacity () {
+      return Number(this.currentRoomInfo?.openSeats || this.currentRoomInfo?.totalSeats || 0)
+    },
+    homeAvailabilityRemaining () {
+      const total = this.currentRoomCapacity
+      if (!total) return '--'
+      return Math.max(total - this.disabledSeatNos.length, 0)
+    },
+    homeAvailabilityDescription () {
+      if (!this.currentRoomInfo || !this.selectedTimeSlot || !this.currentDateLabel) {
+        return '请选择教室、日期与时间段后查看剩余座位。'
+      }
+      return `开放 ${this.currentRoomCapacity} 座 · 已占用 ${this.disabledSeatNos.length} 座 · 当前可选 ${this.homeAvailabilityRemaining} 座`
+    },
     hasAnySelection () {
-      return this.startHour != null || this.endHour != null || !!this.selectedSeatNo
+      return !!this.selectedTimeSlotId || !!this.selectedSeatNo
     },
     selectionTagText () {
       if (!this.currentDateLabel && !this.selectedTimeText && !this.selectedSeatNo) return ''
@@ -1454,20 +1455,18 @@ export default {
     },
     canClearAll () {
       return this.tempReservations.length > 0
-          || this.startHour != null
-          || this.endHour != null
+          || !!this.selectedTimeSlotId
           || !!this.selectedSeatNo
     },
 
     currentTempKey () {
       if (!this.currentRoomId || !this.currentDateStr) return ''
-      if (this.startHour == null || this.endHour == null) return ''
+      if (!this.selectedTimeSlotId) return ''
       if (!this.selectedSeatNo) return ''
       return [
         this.currentRoomId,
         this.currentDateStr,
-        this.startHour,
-        this.endHour,
+        this.selectedTimeSlotId,
         this.selectedSeatNo
       ].join('|')
     },
@@ -1480,10 +1479,8 @@ export default {
     canAddTempReservation () {
       return !!this.currentRoomId
           && !!this.currentDateStr
-          && this.startHour != null
-          && this.endHour != null
+          && !!this.selectedTimeSlotId
           && !!this.selectedSeatNo
-          && !this.rangeHasConflict
           && !this.isDuplicateTempReservation
           && this.tempReservations.length < 4
           && this.getCurrentUserStatus() !== 2
@@ -1568,17 +1565,6 @@ export default {
         return byDateTimeAsc(a, b)
       })
     },
-
-    monthStudyHours () {
-      const mins = Number(this.monthBrief.studyMinutes || 0)
-      const hours = mins / 60
-      return Number.isInteger(hours) ? String(hours) : hours.toFixed(1)
-    },
-
-    lastVisitText () {
-      return this.formatLastVisit(this.monthBrief.lastVisitTime)
-    },
-
 
     // 评价与反馈：只有“环境/服务”类需要打分
     fbNeedRating () {
@@ -1677,7 +1663,7 @@ export default {
 
     this.loadWeather()
     this.loadQuoteFromDb()
-    this.loadHomeDashboard()
+    this.initReserveRooms()
     this.loadHomeNotices()
   },
 
@@ -1781,8 +1767,7 @@ export default {
       this.onCampusChange()
 
       // 默认时间
-      if (this.startHour == null) this.startHour = 8
-      if (this.endHour == null) this.endHour = 9
+      if (!this.selectedTimeSlotId) this.selectedTimeSlotId = this.timeSlotOptions[0]?.id || ''
 
       // ✅ 默认值就绪后，刷新一次冲突
       await this.fetchSlotStatus()
@@ -1881,21 +1866,11 @@ export default {
       return String(n).padStart(2, '0')
     },
 
-    handleStartHourChange () {
-      if (this.startHour == null) return
-      const maxEnd = Math.min(23, this.startHour + 4)
-
-      if (this.endHour == null || this.endHour <= this.startHour) this.endHour = this.startHour + 1
-      if (this.endHour > maxEnd) this.endHour = maxEnd
-
+    handleTimeSlotChange () {
       this.fetchSeatConflicts()
     },
-    handleEndHourChange () {
-      if (this.startHour == null || this.endHour == null) return
-      const maxEnd = Math.min(23, this.startHour + 4)
-      if (this.endHour <= this.startHour) this.endHour = this.startHour + 1
-      if (this.endHour > maxEnd) this.endHour = maxEnd
 
+    handleHomeDateChange () {
       this.fetchSeatConflicts()
     },
 
@@ -1943,8 +1918,6 @@ export default {
     },
 
     async fetchSlotStatus () {
-      this.disabledSlotIds = []
-      // 同步刷新座位冲突（用于置灰不可预约座位）
       await this.fetchSeatConflicts()
     },
 
@@ -1974,8 +1947,7 @@ export default {
 
     resetSelections () {
       // 只清空当前“输入框”选择，不影响已添加的临时列表
-      this.startHour = null
-      this.endHour = null
+      this.selectedTimeSlotId = this.timeSlotOptions[0]?.id || ''
       this.selectedSeatNo = ''
     },
 
@@ -1999,8 +1971,9 @@ export default {
         key: this.currentTempKey,
         roomId: this.currentRoomId,
         date: this.currentDateStr,
-        startHour: this.startHour,
-        endHour: this.endHour,
+        timeSlotId: this.selectedTimeSlotId,
+        startTime: this.selectedTimeSlot?.startTime || '',
+        endTime: this.selectedTimeSlot?.endTime || '',
         seatNo: this.selectedSeatNo,
         label: labelParts.join(' · ')
       }
@@ -2031,8 +2004,7 @@ export default {
       const same = this.tempReservations.every(x =>
           Number(x.roomId) === Number(first.roomId) &&
           x.date === first.date &&
-          Number(x.startHour) === Number(first.startHour) &&
-          Number(x.endHour) === Number(first.endHour)
+          String(x.timeSlotId) === String(first.timeSlotId)
       )
       if (!same) {
         alert('请确保临时列表里的预约属于同一教室/日期/时间段（可多选座位），否则请分多次提交。')
@@ -2043,8 +2015,8 @@ export default {
         userId: this.currentUserId,
         roomId: first.roomId,
         date: first.date,
-        startTime: `${this.pad2(first.startHour)}:00`,
-        endTime: `${this.pad2(first.endHour)}:00`,
+        startTime: first.startTime,
+        endTime: first.endTime,
         seatNos: this.tempReservations.map(x => String(x.seatNo))
       }
 
@@ -2457,10 +2429,10 @@ export default {
     async fetchSeatConflicts () {
       this.disabledSeatNos = []
 
-      if (!this.currentRoomId || !this.currentDateStr || this.startHour == null || this.endHour == null) return
+      if (!this.currentRoomId || !this.currentDateStr || !this.selectedTimeSlot) return
 
-      const startTime = `${this.pad2(this.startHour)}:00`
-      const endTime = `${this.pad2(this.endHour)}:00`
+      const startTime = this.selectedTimeSlot.startTime
+      const endTime = this.selectedTimeSlot.endTime
 
       try {
         const res = await this.$axios.get('/reservation/seatConflicts', {
@@ -2479,20 +2451,12 @@ export default {
       }
     },
 
-    async loadHomeDashboard () {
-      try {
-        if (!this.currentUserId) return
-        const res = await this.$axios.get('/dashboard/home', {
-          params: { userId: this.currentUserId }
-        })
-        const data = this.normalizeData(res) || {}
-        if (data.todayOverview) this.todayOverview = data.todayOverview
-        if (data.monthBrief) this.monthBrief = data.monthBrief
-      } catch (e) {
-        console.error('loadHomeDashboard failed:', e)
-      }
+    goToReserveWithCurrentSelection () {
+      this.emitChange('user-reserve')
+      this.$nextTick(() => {
+        this.fetchSeatConflicts()
+      })
     },
-
 
     async loadHomeNotices () {
       this.noticeLoading = true
@@ -4608,28 +4572,6 @@ export default {
 .weather-temp{font-size: 22px;font-weight: 600;margin-left:6px}
 .weather-desc{font-size: 12px;color:#9ca3af}
 
-/* 月报 + 信用环 横向一排 */
-.month-report{
-  flex: 1;
-  background: #ffffff;
-  border: 1px solid #e5e7eb;
-  border-radius: 12px;
-  padding: 14px;
-  box-shadow: 0 2px 8px rgba(15,23,42,.04);
-}
-.report-title {
-  font-size: 15px;      /* ⭐ 跟 .home-panel-title 一致 */
-  font-weight: 600;
-  margin-bottom: 10px;
-  color: #111827;
-}
-.report-row{
-  display: flex;
-  justify-content: space-between;
-  font-size: 13px;
-  margin: 6px 0;
-}
-.report-row strong{color:#2563eb}
 
 /* 10. 快捷反馈浮层 */
 .feedback-float{
@@ -4700,24 +4642,8 @@ export default {
   width: 100%;
 }
 
-/* 第二行：今日自习室概况 + 本月学习简报 */
-.home-row-two {
-  display: grid;
-  grid-template-columns: 1.4fr 2fr;
-  gap: 12px;
-}
-
-/* 让第二行两块卡片同高 */
-.home-row-two .home-overview,
-.home-row-two .month-report {
-  height: 100%;
-}
-
-/* 窄屏下：概况和月报上下堆叠 */
-@media (max-width: 1024px) {
-  .home-row-two {
-    grid-template-columns: 1fr;
-  }
+.home-availability-row .home-availability-card {
+  width: 100%;
 }
 
 /* 今日提示整块卡片 */
@@ -5250,6 +5176,118 @@ export default {
 .my-res-table th.col-campus,  .my-res-table td.col-campus{
   padding-left: 12px !important;
   padding-right: 12px !important;
+}
+
+.home-availability-card {
+  position: relative;
+  overflow: hidden;
+}
+
+.home-availability-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.home-availability-body {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.home-filter-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.home-filter-item {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.home-filter-item label {
+  font-size: 13px;
+  color: #6b7280;
+  font-weight: 600;
+}
+
+.home-filter-item-wide {
+  grid-column: span 2;
+}
+
+.home-filter-select {
+  min-height: 44px;
+}
+
+.home-availability-summary {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 18px 20px;
+  border-radius: 18px;
+  background: linear-gradient(135deg, rgba(59, 130, 246, 0.08), rgba(99, 102, 241, 0.12));
+  border: 1px solid rgba(59, 130, 246, 0.12);
+}
+
+.home-availability-main {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.home-availability-meta {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  font-size: 13px;
+  color: #6b7280;
+}
+
+.home-query-btn {
+  border: none;
+  outline: none;
+  cursor: pointer;
+  padding: 11px 18px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #3b82f6, #4f46e5);
+  color: #fff;
+  font-weight: 600;
+  box-shadow: 0 10px 24px rgba(79, 70, 229, 0.18);
+  transition: transform .18s ease, box-shadow .18s ease, opacity .18s ease;
+}
+
+.home-query-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 14px 28px rgba(79, 70, 229, 0.24);
+}
+
+.time-slot-control {
+  min-width: 220px;
+}
+
+@media (max-width: 1200px) {
+  .home-filter-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .home-filter-item-wide {
+    grid-column: span 1;
+  }
+}
+
+@media (max-width: 768px) {
+  .home-availability-header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .home-query-btn {
+    width: 100%;
+  }
 }
 
 </style>

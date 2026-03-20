@@ -1424,6 +1424,9 @@ export default {
         reply: '',
         cancelReservation: false
       },
+      tableLayoutRafId: null,
+      tableLayoutTimers: {},
+      pendingTableLayoutRefs: [],
       // 待办事项（管理员首页：根据统计动态生成）
       todos: [],
       // 本地“标记完成”仅做隐藏，不影响后端数据（默认隐藏 6 小时）
@@ -1705,35 +1708,56 @@ export default {
   },
   beforeUnmount () {
     this.stopDashboardTimer()
+    this.clearScheduledTableLayouts()
   },
   methods: {
     emitChange (page) {
       this.$emit('change-page', page)
     },
+    clearScheduledTableLayouts () {
+      if (this.tableLayoutRafId && typeof cancelAnimationFrame === 'function') {
+        cancelAnimationFrame(this.tableLayoutRafId)
+      }
+      this.tableLayoutRafId = null
+      Object.values(this.tableLayoutTimers || {}).forEach((timer) => clearTimeout(timer))
+      this.tableLayoutTimers = {}
+      this.pendingTableLayoutRefs = []
+    },
+    flushTableLayouts () {
+      const names = [...new Set(this.pendingTableLayoutRefs || [])]
+      this.pendingTableLayoutRefs = []
+      names.forEach((name) => {
+        const ref = this.$refs[name]
+        const target = Array.isArray(ref) ? ref[0] : ref
+        if (target && typeof target.doLayout === 'function') {
+          try {
+            target.doLayout()
+          } catch (e) {
+            // ignore layout flush errors
+          }
+        }
+      })
+    },
     scheduleTableLayout (refNames) {
-      const names = Array.isArray(refNames) ? refNames : [refNames]
+      const names = (Array.isArray(refNames) ? refNames : [refNames]).filter(Boolean)
+      if (!names.length) return
+      this.pendingTableLayoutRefs = [...new Set([...(this.pendingTableLayoutRefs || []), ...names])]
       this.$nextTick(() => {
-        const run = () => {
-          names.forEach((name) => {
-            const ref = this.$refs[name]
-            const target = Array.isArray(ref) ? ref[0] : ref
-            if (target && typeof target.doLayout === 'function') {
-              try {
-                target.doLayout()
-              } catch (e) {
-                // ignore layout flush errors
-              }
-            }
-          })
+        if (this.tableLayoutRafId && typeof cancelAnimationFrame === 'function') {
+          cancelAnimationFrame(this.tableLayoutRafId)
         }
         if (typeof requestAnimationFrame === 'function') {
-          requestAnimationFrame(() => {
-            run()
-            setTimeout(run, 16)
+          this.tableLayoutRafId = requestAnimationFrame(() => {
+            this.tableLayoutRafId = null
+            this.flushTableLayouts()
           })
-        } else {
-          setTimeout(run, 0)
+          return
         }
+        if (this.tableLayoutTimers.fallback) clearTimeout(this.tableLayoutTimers.fallback)
+        this.tableLayoutTimers.fallback = setTimeout(() => {
+          delete this.tableLayoutTimers.fallback
+          this.flushTableLayouts()
+        }, 0)
       })
     },
     handleUserDetailDrawerOpened () {
@@ -3485,14 +3509,29 @@ export default {
   font-size: 12px;
 }
 
-.reservation-table, .user-table { width: 100%; }
 .reservation-table,
 .user-table,
 .fb-admin-table {
-  border-radius: 20px;
+  border-radius: 12px;
+  overflow: visible;
+  border: none;
+  background: #fff;
+  box-shadow: 0 0 0 1px #dfe7f5;
+}
+
+.reservation-table :deep(.el-table__inner-wrapper),
+.user-table :deep(.el-table__inner-wrapper),
+.fb-admin-table :deep(.el-table__inner-wrapper),
+.ud-table :deep(.el-table__inner-wrapper) {
+  border-radius: 10px;
   overflow: hidden;
-  border: 1px solid #e9eff9;
-  box-shadow: 0 10px 28px rgba(148, 163, 184, 0.10);
+}
+
+.reservation-table :deep(.el-table__inner-wrapper::before),
+.user-table :deep(.el-table__inner-wrapper::before),
+.fb-admin-table :deep(.el-table__inner-wrapper::before),
+.ud-table :deep(.el-table__inner-wrapper::before) {
+  display: none;
 }
 
 .reservation-table :deep(.el-table__header-wrapper th),
@@ -3508,6 +3547,30 @@ export default {
 .fb-admin-table :deep(.el-table__row td) {
   padding-top: 14px;
   padding-bottom: 14px;
+}
+
+.reservation-table :deep(.el-table__header-wrapper th:first-child),
+.user-table :deep(.el-table__header-wrapper th:first-child),
+.fb-admin-table :deep(.el-table__header-wrapper th:first-child) {
+  border-top-left-radius: 14px;
+}
+
+.reservation-table :deep(.el-table__header-wrapper th:last-child),
+.user-table :deep(.el-table__header-wrapper th:last-child),
+.fb-admin-table :deep(.el-table__header-wrapper th:last-child) {
+  border-top-right-radius: 14px;
+}
+
+.reservation-table :deep(.el-table__body-wrapper tr:last-child td:first-child),
+.user-table :deep(.el-table__body-wrapper tr:last-child td:first-child),
+.fb-admin-table :deep(.el-table__body-wrapper tr:last-child td:first-child) {
+  border-bottom-left-radius: 14px;
+}
+
+.reservation-table :deep(.el-table__body-wrapper tr:last-child td:last-child),
+.user-table :deep(.el-table__body-wrapper tr:last-child td:last-child),
+.fb-admin-table :deep(.el-table__body-wrapper tr:last-child td:last-child) {
+  border-bottom-right-radius: 14px;
 }
 
 .student-cell { display: flex; flex-direction: column; }
@@ -4241,6 +4304,7 @@ export default {
 .complaints-body{
   padding:24px 28px 22px;
   background:#ffffff;
+  overflow:hidden;
 }
 .complaints-toolbar{
   display:flex;
@@ -4257,6 +4321,11 @@ export default {
 .tool-right{display:flex;align-items:center;gap:10px;}
 
 .fb-admin-table :deep(.el-table__cell){vertical-align:top;}
+.fb-admin-table :deep(.el-table__header-wrapper),
+.fb-admin-table :deep(.el-table__body-wrapper),
+.fb-admin-table :deep(.el-table__footer-wrapper) {
+  width: 100% !important;
+}
 .fb-user-name{font-weight:700;color:#111827;line-height:1.2;}
 .fb-user-sub{font-size:12px;color:#6b7280;margin-top:3px;}
 .fb-rel-main{font-weight:700;color:#111827;line-height:1.2;}

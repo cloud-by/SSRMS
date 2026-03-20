@@ -91,16 +91,23 @@ export default {
 
 .desktop-main {
   flex: 1;
+  min-width: 0;
   display: flex;
   flex-direction: column;
 }
 
 .desktop-content {
   flex: 1;
+  min-width: 0;
   display: flex;
   padding: 8px 24px 20px;
   box-sizing: border-box;
   overflow-x: hidden;
+}
+
+.desktop-content > * {
+  flex: 1;
+  min-width: 0;
 }
 
 @media (max-width: 900px) {
